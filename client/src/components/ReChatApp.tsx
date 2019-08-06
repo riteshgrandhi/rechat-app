@@ -1,6 +1,6 @@
 import React from "react";
 import logo from "./../logo.svg";
-import "./App.css";
+import "./ReChatApp.css";
 
 interface IAppState {
   title: string;
@@ -8,7 +8,7 @@ interface IAppState {
 
 interface IAppProps {}
 
-class App extends React.Component<IAppProps, IAppState> {
+class ReChatApp extends React.Component<IAppProps, IAppState> {
   constructor(props: IAppProps) {
     super(props);
     this.state = {
@@ -29,9 +29,7 @@ class App extends React.Component<IAppProps, IAppState> {
       <div className="App">
         <header className="App-header">
           <img src={logo} className="App-logo" alt="logo" />
-          <p>
-            {this.state.title}
-          </p>
+          <p>{this.state.title}</p>
           <a
             className="App-link"
             href="https://reactjs.org"
@@ -50,4 +48,4 @@ class App extends React.Component<IAppProps, IAppState> {
   }
 }
 
-export default App;
+export default ReChatApp;
