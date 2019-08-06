@@ -1,15 +1,36 @@
 import React from "react";
-import logo from "./logo.svg";
+import logo from "./../logo.svg";
 import "./App.css";
 
-class App extends React.Component {
+interface IAppState {
+  title: string;
+}
+
+interface IAppProps {}
+
+class App extends React.Component<IAppProps, IAppState> {
+  constructor(props: IAppProps) {
+    super(props);
+    this.state = {
+      title: ""
+    };
+  }
+
+  componentDidMount() {
+    this.getData().then(data => {
+      this.setState({
+        title: data.express
+      });
+    });
+  }
+
   render() {
     return (
       <div className="App">
         <header className="App-header">
           <img src={logo} className="App-logo" alt="logo" />
           <p>
-            Edit <code>src/App.tsx</code> and save to reload.
+            {this.state.title}
           </p>
           <a
             className="App-link"
@@ -22,6 +43,10 @@ class App extends React.Component {
         </header>
       </div>
     );
+  }
+
+  getData() {
+    return fetch("/api/data").then(resp => resp.json());
   }
 }
 

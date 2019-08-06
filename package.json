@@ -1,0 +1,13 @@
+{
+  "name": "react-chat-app",
+  "version": "0.1.0",
+  "description": "Test Realtime Chat Web App",
+  "scripts": {
+    "start": "concurrently \"cd server && npm run start\"  \"cd client && npm run start\""
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "concurrently": "^4.1.1"
+  }
+}
