@@ -44,7 +44,7 @@ class ReChatApp extends React.Component<IAppProps, IAppState> {
   }
 
   getData() {
-    return fetch("/api/data").then(resp => resp.json());
+    return fetch("/api/chat").then(resp => resp.json());
   }
 }
 

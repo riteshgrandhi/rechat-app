@@ -1,13 +1,7 @@
-import express, { Application, Request, Response } from "express";
-import * as path from "path";
-const port: number = 3001;
+import ChatServer from "./ChatServer";
 
-const app: Application = express();
+// create server
+const server: ChatServer = new ChatServer(3001);
 
-app.listen(port, () => {
-  console.log(`listening on port: ${port}...`);
-});
-
-app.get("/api/data", (req: Request, res: Response) => {
-  res.send({ express: "Express server is connected!" });
-});
+// start server
+server.start();
