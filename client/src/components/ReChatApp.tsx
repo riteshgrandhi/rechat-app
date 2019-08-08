@@ -1,5 +1,6 @@
 import React from "react";
 import logo from "./../logo.svg";
+import io from "socket.io-client";
 import "./ReChatApp.css";
 
 interface IAppState {
@@ -9,11 +10,23 @@ interface IAppState {
 interface IAppProps {}
 
 class ReChatApp extends React.Component<IAppProps, IAppState> {
+  private socket: SocketIOClient.Socket;
+
   constructor(props: IAppProps) {
     super(props);
+
     this.state = {
       title: ""
     };
+
+    this.socket = io();
+    this.initSocketListeners();
+  }
+
+  private initSocketListeners() {
+    this.socket.on("new_notification", (data: any) => {
+      console.log(data);
+    });
   }
 
   componentDidMount() {
@@ -44,7 +57,7 @@ class ReChatApp extends React.Component<IAppProps, IAppState> {
   }
 
   getData() {
-    return fetch("/api/chat").then(resp => resp.json());
+    return fetch("/api/data").then(resp => resp.json());
   }
 }
 

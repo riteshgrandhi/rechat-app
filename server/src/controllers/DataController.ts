@@ -1,7 +1,7 @@
 import { Router, Request, Response } from "express";
 
-export default class ChatController {
-  public path = "/chat";
+export default class DataController {
+  public path = "/data";
   public router: Router = Router();
 
   constructor() {

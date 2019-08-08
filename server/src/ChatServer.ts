@@ -1,5 +1,7 @@
 import express, { Application } from "express";
-import ChatController from "./controllers/ChatController";
+import DataController from "./controllers/DataController";
+import socketio from "socket.io";
+import ChatHandler from "./controllers/ChatHandler";
 
 export default class ChatServer {
   private app: Application;
@@ -17,15 +19,18 @@ export default class ChatServer {
   }
 
   private initControllers() {
-    let controllers = [new ChatController()];
+    let controllers = [new DataController()];
     controllers.forEach(controller => {
       this.app.use("/api", controller.router);
     });
   }
 
   public start() {
-    this.app.listen(this.port, () => {
+    const server = this.app.listen(this.port, () => {
       console.log(`Listening on port ${this.port}...`);
     });
+
+    const io = socketio(server);
+    const chatHandler = new ChatHandler(io);
   }
 }
