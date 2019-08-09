@@ -7,13 +7,15 @@ export default class ChatHandler {
     this.io.on("connection", this.onConnection);
   }
 
-  public onConnection(socket: SocketIO.Socket) {
+  private onConnection(socket: SocketIO.Socket) {
     console.log("New Connection Estabished!");
-    var i = 0;
-    setInterval(() => {
-      this.io.sockets.emit("new_notification", {
-        message: `You have been connected: ${i++} seconds ago`
-      });
-    }, 1000);
+    this.io.sockets.emit("new_notification", {
+      message: `You are connected!`
+    });
+
+    socket.on("client_text_update", (data: { text: string }) => {
+      console.log(`recieveing ${data.text}`);
+      socket.broadcast.emit("server_text_update", data);
+    });
   }
 }

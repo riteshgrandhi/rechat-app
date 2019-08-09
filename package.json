@@ -1,7 +1,7 @@
 {
-  "name": "react-chat-app",
+  "name": "remarc-app",
   "version": "0.1.0",
-  "description": "Test Realtime Chat Web App",
+  "description": "Test Realtime Markdown Editor Web App",
   "scripts": {
     "start": "concurrently \"cd server && npm run start\"  \"cd client && npm run start\""
   },
