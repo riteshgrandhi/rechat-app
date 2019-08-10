@@ -1,3 +1,5 @@
+import * as Common from "remarc-app-common";
+
 export default class ChatHandler {
   private io: SocketIO.Server;
 
@@ -13,9 +15,9 @@ export default class ChatHandler {
       message: `You are connected!`
     });
 
-    socket.on("client_text_update", (data: { text: string }) => {
-      console.log(`recieveing ${data.text}`);
-      socket.broadcast.emit("server_text_update", data);
+    socket.on(Common.Events.CLIENT_TEXT_UPDATE, (data: Common.IOpSequence) => {
+      console.log(`recieveing ${data}`);
+      socket.broadcast.emit(Common.Events.SERVER_TEXT_UPDATE, data);
     });
   }
 }

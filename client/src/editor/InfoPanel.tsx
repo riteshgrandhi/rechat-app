@@ -1,5 +1,5 @@
 import React from "react";
-import styles from "./../styles/RemarcApp.module.scss";
+import styles from "./app.module.scss";
 
 export class InfoPanel extends React.Component {
   render() {
