@@ -1,11 +1,14 @@
 import * as Common from "remarc-app-common";
 
-export default class ChatHandler {
+export default class ChangeHandler {
   private io: SocketIO.Server;
 
   constructor(io: SocketIO.Server) {
     this.onConnection = this.onConnection.bind(this);
     this.io = io;
+  }
+
+  public init():void {
     this.io.on("connection", this.onConnection);
   }
 

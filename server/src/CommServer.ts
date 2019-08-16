@@ -1,9 +1,9 @@
 import express, { Application } from "express";
 import DataController from "./controllers/DataController";
 import socketio from "socket.io";
-import ChatHandler from "./controllers/ChatHandler";
+import ChangeHandler from "./controllers/ChangeHandler";
 
-export default class ChatServer {
+export default class CommServer {
   private app: Application;
   private port: number;
 
@@ -31,6 +31,7 @@ export default class ChatServer {
     });
 
     const io = socketio(server);
-    const chatHandler = new ChatHandler(io);
+    const chatHandler = new ChangeHandler(io);
+    chatHandler.init();
   }
 }

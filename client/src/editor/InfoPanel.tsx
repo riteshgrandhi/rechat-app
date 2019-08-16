@@ -6,10 +6,10 @@ export class InfoPanel extends React.Component {
     return (
       <div className={styles.infoPanel}>
         <div className={styles.documentInfo}>
-          <div>Document Info</div>
+          <div>DOCUMENT INFO</div>
         </div>
         <div className={styles.personaInfo}>
-          <div>Persona Info</div>
+          <div>PERSONA</div>
         </div>
       </div>
     );

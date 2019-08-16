@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "description": "Test Realtime Markdown Editor Web App",
   "scripts": {
-    "start": "concurrently \"cd server && npm run start\"  \"cd client && npm run start\""
+    "start": "concurrently \"cd server && npm run debug:server\"  \"cd client && npm run debug:client\""
   },
   "author": "",
   "license": "ISC",

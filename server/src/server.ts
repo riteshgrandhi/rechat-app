@@ -1,7 +1,7 @@
-import ChatServer from "./ChatServer";
+import CommServer from "./CommServer";
 
 // create server
-const server: ChatServer = new ChatServer(3001);
+const server: CommServer = new CommServer(3001);
 
 // start server
 server.start();

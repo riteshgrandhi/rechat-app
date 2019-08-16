@@ -5,7 +5,7 @@ export interface IOpSequence {
 
 export interface ITextOp {
   type: OpType;
-  data: string;
+  text: string;
   position: number;
 }
 

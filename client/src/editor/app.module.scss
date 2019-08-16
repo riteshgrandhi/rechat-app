@@ -19,14 +19,13 @@ body {
   height: 100%;
   display: flex;
   flex-direction: column;
+  background-color: #272727;
   .documentInfo {
     padding: 5%;
-    background-color: #272727;
     height: 40%;
   }
   .personaInfo {
     padding: 5%;
-    background-color: #323232;
     height: 60%;
   }
 }

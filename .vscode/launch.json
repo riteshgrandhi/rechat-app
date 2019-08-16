@@ -1,0 +1,42 @@
+{
+  // Use IntelliSense to learn about possible attributes.
+  // Hover to view descriptions of existing attributes.
+  // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+  "version": "0.2.0",
+  "compounds": [
+    {
+      "name": "CLIENT + SERVER",
+      "configurations": ["ATTACH_TO_CLIENT", "ATTACH_TO_SERVER"]
+    }
+  ],
+  "configurations": [
+    {
+      "type": "chrome",
+      "request": "launch",
+      "name": "ATTACH_TO_CLIENT",
+      "url": "http://localhost:3000",
+      "webRoot": "${workspaceFolder}/client"
+    },
+    // {
+    //   "type": "node",
+    //   "request": "launch",
+    //   "name": "SERVER",
+    //   "cwd": "${workspaceFolder}/server",
+    //   "runtimeExecutable": "npm",
+    //   "runtimeArgs": ["run-script", "start"],
+    //   "port": 3001
+    // },
+    {
+      "type": "node",
+      "request": "attach",
+      "name": "ATTACH_TO_SERVER",
+      "cwd": "${workspaceFolder}/server",
+      // "processId": "${command:PickProcess}",
+      "protocol": "inspector",
+      "restart": true,
+      "port": 5858,
+      "sourceMaps": true,
+      "outFiles": []
+    }
+  ]
+}
