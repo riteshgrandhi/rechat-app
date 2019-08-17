@@ -5,10 +5,10 @@ import { InfoPanel } from "./InfoPanel";
 import { RouteComponentProps } from "@reach/router";
 import {
   TextOpService,
-  IOpSequence,
   Events,
+  ICharOp,
   OpType,
-  ITextOp
+  CFRString
 } from "remarc-app-common";
 import { Key } from "ts-keycode-enum";
 
@@ -21,6 +21,7 @@ interface IEditorProps extends RouteComponentProps {}
 
 class Editor extends React.Component<IEditorProps, IEditorState> {
   private socket: SocketIOClient.Socket;
+  private CFRDocument: CFRString;
 
   constructor(props: IEditorProps) {
     super(props);
@@ -30,20 +31,26 @@ class Editor extends React.Component<IEditorProps, IEditorState> {
       document: ""
     };
 
-    this.onServerTextUpdate = this.onServerTextUpdate.bind(this);
+    // this.onServerTextUpdate = this.onServerTextUpdate.bind(this);
     // this.onTextChangeEvent = this.onTextChangeEvent.bind(this);
     this.onKeyDown = this.onKeyDown.bind(this);
     this.onPaste = this.onPaste.bind(this);
     this.socket = io();
+    this.CFRDocument = new CFRString();
     this.initSocketListeners();
   }
 
   private initSocketListeners() {
-    this.socket.on("new_notification", (data: any) => {
+    this.socket.on("connect", (data: any) => {
       console.log(data);
+      // this.CFRDocument.convertFromString({
+      //   text: "test string",
+      //   userId: this.socket.id
+      // });
+      // console.log(this.CFRDocument.get());
     });
 
-    this.socket.on(Events.SERVER_TEXT_UPDATE, this.onServerTextUpdate);
+    // this.socket.on(Events.SERVER_TEXT_UPDATE, this.onServerTextUpdate);
   }
 
   componentDidMount() {
@@ -57,44 +64,6 @@ class Editor extends React.Component<IEditorProps, IEditorState> {
   getData() {
     return fetch("/api/data").then(resp => resp.json());
   }
-
-  onServerTextUpdate(data: IOpSequence) {
-    console.log(`recieving "${data}" from server`);
-    // this.setState({ document: data.text });
-  }
-
-  // private onSelfTextUpdate(updatedText: string) {
-  //   console.log(`sending "${updatedText}" to server`);
-  //   var ops: IOpSequence = {
-  //     opList: [
-  //       {
-  //         type: OpType.DELETE,
-  //         text: "xyz",
-  //         position: 2
-  //       },
-  //       {
-  //         type: OpType.ADD,
-  //         text: "1234",
-  //         position: 2
-  //       }
-  //     ],
-  //     id: "1"
-  //   };
-  //   // var textOpService: TextOpService = new TextOpService();
-  //   // var newText = textOpService.performOpsOnText("abcdefs", ops);
-
-  //   this.socket.emit(Events.CLIENT_TEXT_UPDATE, ops);
-  // }
-
-  // private onTextChangeEvent(event: React.ChangeEvent<HTMLTextAreaElement>) {
-  //   var val = (event.target as HTMLTextAreaElement).value;
-  //   var textOpService: TextOpService = new TextOpService();
-
-  //   console.log(event.target.selectionStart);
-  //   console.log(event.target.selectionEnd);
-  //   this.setState({ document: val });
-  //   this.onSelfTextUpdate(val);
-  // }
 
   private onKeyDown(e: React.KeyboardEvent) {
     if (
@@ -142,32 +111,39 @@ class Editor extends React.Component<IEditorProps, IEditorState> {
     var _start = target.selectionStart;
     var _end = target.selectionEnd;
 
-    var op: ITextOp[] = [];
+    var op: ICharOp[] = [];
 
     if (!(e.ctrlKey && e.which == Key.V)) {
       switch (e.which) {
         case Key.Backspace: {
           text = val.slice(_start == _end ? _start - 1 : _start, _end);
-          op.push({ type: OpType.DELETE, position: _start, text: text });
+          // op.push({ type: OpType.DELETE, position: _start, text: text });
           break;
         }
         case Key.Delete: {
           text = val.slice(_start, _start == _end ? _end + 1 : _end);
-          op.push({ type: OpType.DELETE, position: _start, text: text });
+          // op.push({ type: OpType.DELETE, position: _start, text: text });
           break;
         }
         default: {
           if (_start != _end) {
             text = val.slice(_start, _end);
-            op.push({ type: OpType.DELETE, position: _start, text: text });
+            // op.push({ type: OpType.DELETE, position: _start, text: text });
           }
           text = e.key;
-          op.push({ type: OpType.ADD, position: _start, text: text });
+          // op.push({ type: OpType.ADD, position: _start, text: text });
+          this.CFRDocument.insertString({
+            text: text,
+            userId: this.socket.id,
+            globalPos: _start
+          });
+          this.CFRDocument.print();
         }
       }
-      if (text) {
-        console.log(text, _start, _end, op);
-      }
+      // if (text) {
+      //   console.log(text, _start, _end, op);
+      //   // this.sendTextOp(op);
+      // }
     }
   }
 
@@ -179,14 +155,14 @@ class Editor extends React.Component<IEditorProps, IEditorState> {
 
     var _start = target.selectionStart;
     var _end = target.selectionEnd;
-    var op: ITextOp[] = [];
+    var op: ICharOp[] = [];
 
     if (_start != _end) {
       text = val.slice(_start, _end);
-      op.push({ type: OpType.DELETE, position: _start, text: text });
+      // op.push({ type: OpType.DELETE, position: _start, text: text });
     }
     text = e.clipboardData.getData("text/plain");
-    op.push({ type: OpType.ADD, position: _start, text: text });
+    // op.push({ type: OpType.ADD, position: _start, text: text });
     console.log(op);
   }
 

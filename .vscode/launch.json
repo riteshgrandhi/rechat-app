@@ -15,7 +15,8 @@
       "request": "launch",
       "name": "ATTACH_TO_CLIENT",
       "url": "http://localhost:3000",
-      "webRoot": "${workspaceFolder}/client"
+      "webRoot": "${workspaceFolder}/client",
+      "sourceMaps": true
     },
     // {
     //   "type": "node",
