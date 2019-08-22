@@ -1,0 +1,8 @@
+{
+  "compilerOptions": {
+    "baseUrl": "node_modules",
+    "paths": {
+      "@common": ["remarc-app-common/src/index.ts"]
+    }
+  }
+}

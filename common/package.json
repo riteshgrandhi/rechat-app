@@ -2,7 +2,7 @@
   "name": "remarc-app-common",
   "version": "0.1.0",
   "description": "",
-  "main": "./dist/index.js",
+  "main": "./src/index.ts",
   "scripts": {
     "build": "tsc"
   },

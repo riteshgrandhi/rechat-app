@@ -16,7 +16,18 @@
       "name": "ATTACH_TO_CLIENT",
       "url": "http://localhost:3000",
       "webRoot": "${workspaceFolder}/client",
-      "sourceMaps": true
+      "sourceMaps": true,
+      // "outFiles": ["${workspaceFolder}/client/node_modules/**/*.js"],
+      "runtimeArgs": [
+        "--preserve-symlinks"
+      ],
+      "sourceMapPathOverrides": {
+        "webpack:///./*": "${webRoot}/*",
+        "webpack:///src/*": "${webRoot}/*",
+        "webpack:///*": "*",
+        "webpack:///./~/*": "${webRoot}/node_modules/*",
+        "meteor://💻app/*": "${webRoot}/*"
+      }
     },
     // {
     //   "type": "node",

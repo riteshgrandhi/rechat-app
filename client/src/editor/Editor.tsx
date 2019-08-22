@@ -3,13 +3,8 @@ import io from "socket.io-client";
 import styles from "./app.module.scss";
 import { InfoPanel } from "./InfoPanel";
 import { RouteComponentProps } from "@reach/router";
-import {
-  TextOpService,
-  Events,
-  ICharOp,
-  OpType,
-  CFRString
-} from "remarc-app-common";
+// import { Events, OpType, ICharOpSequence, CFRString } from "remarc-app-common";
+import { ICharOpSequence, CFRString, Events } from "@common";
 import { Key } from "ts-keycode-enum";
 
 interface IEditorState {
@@ -72,10 +67,11 @@ class Editor extends React.Component<IEditorProps, IEditorState> {
     ) {
       e.preventDefault();
     }
+    // console.log(e.which, e.shiftKey, e.keyCode);
 
     if (
       e.which == 0 ||
-      e.shiftKey ||
+      (e.shiftKey && e.which == Key.Shift) ||
       e.ctrlKey ||
       e.altKey ||
       e.which == Key.Tab ||
@@ -88,6 +84,7 @@ class Editor extends React.Component<IEditorProps, IEditorState> {
       e.which == Key.Insert ||
       e.which == Key.End ||
       e.which == Key.Home ||
+      e.which == Key.CapsLock ||
       e.which == Key.F1 ||
       e.which == Key.F2 ||
       e.which == Key.F3 ||
@@ -99,7 +96,8 @@ class Editor extends React.Component<IEditorProps, IEditorState> {
       e.which == Key.F9 ||
       e.which == Key.F10 ||
       e.which == Key.F11 ||
-      e.which == Key.F12
+      e.which == Key.F12 ||
+      e.key.length > 1
     ) {
       return false;
     }
@@ -110,8 +108,7 @@ class Editor extends React.Component<IEditorProps, IEditorState> {
 
     var _start = target.selectionStart;
     var _end = target.selectionEnd;
-
-    var op: ICharOp[] = [];
+    var opList: ICharOpSequence = { sequence: [] };
 
     if (!(e.ctrlKey && e.which == Key.V)) {
       switch (e.which) {
@@ -130,16 +127,22 @@ class Editor extends React.Component<IEditorProps, IEditorState> {
             text = val.slice(_start, _end);
             // op.push({ type: OpType.DELETE, position: _start, text: text });
           }
-          text = e.key;
-          // op.push({ type: OpType.ADD, position: _start, text: text });
-          this.CFRDocument.insertString({
+          if (e.which == Key.Enter) {
+            text = "\n";
+          } else {
+            text = e.key;
+          }
+          // op.push({ type: OpType.ADD, position: _start, text:     });
+          opList = this.CFRDocument.insertString({
             text: text,
             userId: this.socket.id,
             globalPos: _start
           });
           this.CFRDocument.print();
+          console.log(opList.sequence);
         }
       }
+      this.socket.emit(Events.CLIENT_TEXT_UPDATE, opList);
       // if (text) {
       //   console.log(text, _start, _end, op);
       //   // this.sendTextOp(op);
@@ -155,15 +158,22 @@ class Editor extends React.Component<IEditorProps, IEditorState> {
 
     var _start = target.selectionStart;
     var _end = target.selectionEnd;
-    var op: ICharOp[] = [];
 
     if (_start != _end) {
       text = val.slice(_start, _end);
       // op.push({ type: OpType.DELETE, position: _start, text: text });
     }
     text = e.clipboardData.getData("text/plain");
+    var opList: ICharOpSequence = this.CFRDocument.insertString({
+      text: text,
+      userId: this.socket.id,
+      globalPos: _start
+    });
+
+    this.CFRDocument.print();
+    console.log(opList.sequence);
     // op.push({ type: OpType.ADD, position: _start, text: text });
-    console.log(op);
+    // console.log(op);
   }
 
   render() {

@@ -1,23 +1,10 @@
-export declare enum OpType {
-  ADD = 0,
-  DELETE = 1
-}
-export declare enum Events {
-  SERVER_TEXT_UPDATE = "server_text_update",
-  CLIENT_TEXT_UPDATE = "client_text_update"
-}
-export interface ICharOp {
-  type: OpType;
-  character: ICFRCharacter;
-}
-export interface ICFRCharacter {
-  char: string;
-  uniqueId: ICharId[];
-}
-interface ICharId {
-  relativePos: number;
-  userId: string;
-}
+import {
+  ICFRCharacter,
+  ICharOpSequence,
+  OpType,
+  ICharId
+} from "./Entities";
+
 export class CFRString {
   private _cfrString: ICFRCharacter[];
 
@@ -47,7 +34,8 @@ export class CFRString {
     text: string;
     userId: string;
     globalPos: number;
-  }): void {
+  }): ICharOpSequence {
+    var _opSequence: ICharOpSequence = { sequence: [] };
     for (var i = 0; i < props.text.length; i++) {
       var newUId: ICharId[] = [];
       if (this._cfrString[props.globalPos + i - 1]) {
@@ -74,8 +62,19 @@ export class CFRString {
         uniqueId: newUId
       };
       this._cfrString.splice(props.globalPos, 0, _cfrChar);
+      _opSequence.sequence.push({ type: OpType.ADD, cfrCharacter: _cfrChar });
     }
+    return _opSequence;
   }
+
+  public deleteString(props: {
+    text: string;
+    userId: string;
+    globalPos: number;
+  }) {
+    this._cfrString.splice(props.globalPos);
+  }
+
   public print() {
     console.log(this._cfrString.map(c => c.char).join(""));
 

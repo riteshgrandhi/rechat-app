@@ -1,4 +1,4 @@
-import * as Common from "remarc-app-common";
+import { Events, ICharOpSequence, CFRString } from "remarc-app-common";
 
 export default class ChangeHandler {
   private io: SocketIO.Server;
@@ -8,7 +8,7 @@ export default class ChangeHandler {
     this.io = io;
   }
 
-  public init():void {
+  public init(): void {
     this.io.on("connection", this.onConnection);
   }
 
@@ -18,9 +18,11 @@ export default class ChangeHandler {
       message: `You are connected!`
     });
 
-    socket.on(Common.Events.CLIENT_TEXT_UPDATE, (data: Common.IOpSequence) => {
+    socket.on(Events.CLIENT_TEXT_UPDATE, (data: ICharOpSequence) => {
       console.log(`recieveing ${data}`);
-      socket.broadcast.emit(Common.Events.SERVER_TEXT_UPDATE, data);
+      var doc: CFRString = new CFRString();
+      doc.convertFromString({ text: "hello", userId: socket.id });
+      socket.broadcast.emit(Events.SERVER_TEXT_UPDATE, data);
     });
   }
 }
