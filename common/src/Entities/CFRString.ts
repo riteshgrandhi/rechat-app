@@ -1,9 +1,4 @@
-import {
-  ICFRCharacter,
-  ICharOpSequence,
-  OpType,
-  ICharId
-} from "./Entities";
+import { ICFRCharacter, ICharOpSequence, OpType, ICharId } from "./Entities";
 
 export class CFRString {
   private _cfrString: ICFRCharacter[];
@@ -61,7 +56,7 @@ export class CFRString {
         char: props.text[i],
         uniqueId: newUId
       };
-      this._cfrString.splice(props.globalPos, 0, _cfrChar);
+      this._cfrString.splice(props.globalPos + i, 0, _cfrChar);
       _opSequence.sequence.push({ type: OpType.ADD, cfrCharacter: _cfrChar });
     }
     return _opSequence;
@@ -71,8 +66,16 @@ export class CFRString {
     text: string;
     userId: string;
     globalPos: number;
-  }) {
-    this._cfrString.splice(props.globalPos);
+  }): ICharOpSequence {
+    var _opSequence: ICharOpSequence = { sequence: [] };
+    for (var i = 0; i < props.text.length; i++) {
+      _opSequence.sequence.push({
+        type: OpType.DELETE,
+        cfrCharacter: this._cfrString[props.globalPos + i]
+      });
+    }
+    this._cfrString.splice(props.globalPos, props.text.length);
+    return _opSequence;
   }
 
   public print() {

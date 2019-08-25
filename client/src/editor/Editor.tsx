@@ -159,18 +159,28 @@ class Editor extends React.Component<IEditorProps, IEditorState> {
     var _start = target.selectionStart;
     var _end = target.selectionEnd;
 
+    var deleteOpList: ICharOpSequence = { sequence: [] };
+
     if (_start != _end) {
       text = val.slice(_start, _end);
       // op.push({ type: OpType.DELETE, position: _start, text: text });
+      deleteOpList = this.CFRDocument.deleteString({
+        text: text,
+        userId: this.socket.id,
+        globalPos: _start
+      });
     }
     text = e.clipboardData.getData("text/plain");
-    var opList: ICharOpSequence = this.CFRDocument.insertString({
+    var insertOpList: ICharOpSequence = this.CFRDocument.insertString({
       text: text,
       userId: this.socket.id,
       globalPos: _start
     });
 
     this.CFRDocument.print();
+    var opList: ICharOpSequence = {
+      sequence: deleteOpList.sequence.concat(insertOpList.sequence)
+    };
     console.log(opList.sequence);
     // op.push({ type: OpType.ADD, position: _start, text: text });
     // console.log(op);
