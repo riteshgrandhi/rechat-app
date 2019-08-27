@@ -30,7 +30,7 @@ export class CFRString {
     userId: string;
     globalPos: number;
   }): ICharOpSequence {
-    var _opSequence: ICharOpSequence = { sequence: [] };
+    var _opSequence: ICharOpSequence = [];
     for (var i = 0; i < props.text.length; i++) {
       var newUId: ICharId[] = [];
       if (this._cfrString[props.globalPos + i - 1]) {
@@ -57,7 +57,7 @@ export class CFRString {
         uniqueId: newUId
       };
       this._cfrString.splice(props.globalPos + i, 0, _cfrChar);
-      _opSequence.sequence.push({ type: OpType.ADD, cfrCharacter: _cfrChar });
+      _opSequence.push({ type: OpType.ADD, cfrCharacter: _cfrChar });
     }
     return _opSequence;
   }
@@ -67,9 +67,9 @@ export class CFRString {
     userId: string;
     globalPos: number;
   }): ICharOpSequence {
-    var _opSequence: ICharOpSequence = { sequence: [] };
+    var _opSequence: ICharOpSequence = [];
     for (var i = 0; i < props.text.length; i++) {
-      _opSequence.sequence.push({
+      _opSequence.push({
         type: OpType.DELETE,
         cfrCharacter: this._cfrString[props.globalPos + i]
       });
@@ -78,8 +78,17 @@ export class CFRString {
     return _opSequence;
   }
 
+  public getText() {
+    // return this._cfrString.map((c: ICFRCharacter) => c.char).join();
+    var res: string = "";
+    for (var i = 0; i < this._cfrString.length; i++) {
+      res += this._cfrString[i].char;
+    }
+    return res;
+  }
+
   public print() {
-    console.log(this._cfrString.map(c => c.char).join(""));
+    console.log(this.getText());
 
     console.log(
       this._cfrString.map(c => {

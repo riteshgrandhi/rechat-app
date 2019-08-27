@@ -108,44 +108,57 @@ class Editor extends React.Component<IEditorProps, IEditorState> {
 
     var _start = target.selectionStart;
     var _end = target.selectionEnd;
-    var opList: ICharOpSequence = { sequence: [] };
+
+    var deleteOpList: ICharOpSequence = [];
 
     if (!(e.ctrlKey && e.which == Key.V)) {
       switch (e.which) {
         case Key.Backspace: {
           text = val.slice(_start == _end ? _start - 1 : _start, _end);
-          // op.push({ type: OpType.DELETE, position: _start, text: text });
+          deleteOpList = this.CFRDocument.deleteString({
+            text: text,
+            userId: this.socket.id,
+            globalPos: _start
+          });
           break;
         }
         case Key.Delete: {
           text = val.slice(_start, _start == _end ? _end + 1 : _end);
-          // op.push({ type: OpType.DELETE, position: _start, text: text });
+          deleteOpList = this.CFRDocument.deleteString({
+            text: text,
+            userId: this.socket.id,
+            globalPos: _start
+          });
           break;
         }
         default: {
           if (_start != _end) {
             text = val.slice(_start, _end);
-            // op.push({ type: OpType.DELETE, position: _start, text: text });
+            deleteOpList = this.CFRDocument.deleteString({
+              text: text,
+              userId: this.socket.id,
+              globalPos: _start
+            });
           }
           if (e.which == Key.Enter) {
             text = "\n";
           } else {
             text = e.key;
           }
-          // op.push({ type: OpType.ADD, position: _start, text:     });
-          opList = this.CFRDocument.insertString({
+          var insertOpList: ICharOpSequence = this.CFRDocument.insertString({
             text: text,
             userId: this.socket.id,
             globalPos: _start
           });
           this.CFRDocument.print();
-          console.log(opList.sequence);
+          var opList: ICharOpSequence = deleteOpList.concat(insertOpList);
+          console.log(opList);
         }
       }
-      this.socket.emit(Events.CLIENT_TEXT_UPDATE, opList);
+      // this.socket.emit(Events.CLIENT_TEXT_UPDATE, opList);
       // if (text) {
       //   console.log(text, _start, _end, op);
-      //   // this.sendTextOp(op);
+        // this.sendTextOp(op);
       // }
     }
   }
@@ -159,11 +172,10 @@ class Editor extends React.Component<IEditorProps, IEditorState> {
     var _start = target.selectionStart;
     var _end = target.selectionEnd;
 
-    var deleteOpList: ICharOpSequence = { sequence: [] };
+    var deleteOpList: ICharOpSequence = [];
 
     if (_start != _end) {
       text = val.slice(_start, _end);
-      // op.push({ type: OpType.DELETE, position: _start, text: text });
       deleteOpList = this.CFRDocument.deleteString({
         text: text,
         userId: this.socket.id,
@@ -178,12 +190,8 @@ class Editor extends React.Component<IEditorProps, IEditorState> {
     });
 
     this.CFRDocument.print();
-    var opList: ICharOpSequence = {
-      sequence: deleteOpList.sequence.concat(insertOpList.sequence)
-    };
-    console.log(opList.sequence);
-    // op.push({ type: OpType.ADD, position: _start, text: text });
-    // console.log(op);
+    var opList: ICharOpSequence = deleteOpList.concat(insertOpList);
+    console.log(opList);
   }
 
   render() {
