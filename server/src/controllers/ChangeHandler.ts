@@ -13,15 +13,15 @@ export default class ChangeHandler {
   }
 
   private onConnection(socket: SocketIO.Socket) {
-    console.log("New Connection Estabished!");
+    console.log("New Connection Estabished!" + socket.id);
     this.io.sockets.emit("new_notification", {
       message: `You are connected!`
     });
 
     socket.on(Events.CLIENT_TEXT_UPDATE, (data: ICharOpSequence) => {
       console.log(`recieveing ${data}`);
-      var doc: CFRString = new CFRString();
-      doc.convertFromString({ text: "hello", userId: socket.id });
+      // var doc: CFRString = new CFRString();
+      // doc.convertFromString({ text: "hello", userId: socket.id });
       socket.broadcast.emit(Events.SERVER_TEXT_UPDATE, data);
     });
   }

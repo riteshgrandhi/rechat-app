@@ -25,6 +25,51 @@ export class CFRString {
     return this._cfrString;
   }
 
+  public applyOpSequence(opSequence: ICharOpSequence) {
+    opSequence.forEach(op => {
+      switch (op.type) {
+        case OpType.ADD: {
+          this.insertCfrCharacter(op.cfrCharacter);
+        }
+        case OpType.DELETE: {
+          this.deleteCfrCharacter(op.cfrCharacter);
+        }
+      }
+    });
+  }
+
+  private insertCfrCharacter(char: ICFRCharacter) {
+    var index: number = -1;
+    var level: number = 0;
+    // find the index to insert
+    for (var i = 0; i < this._cfrString.length; i++) {
+      if (
+        this._cfrString[i].uniqueId[level].relativePos ==
+        char.uniqueId[level].relativePos
+      ) {
+        index = i;
+        level++;
+        if (
+          level >= char.uniqueId.length - 1 ||
+          level >= this._cfrString[i].uniqueId.length - 1
+        ) {
+          break;
+        }
+      }
+    }
+    if (index == -1) {
+      index = this._cfrString.length;
+    }
+    this._cfrString.splice(index, 0, char);
+  }
+
+  private deleteCfrCharacter(char: ICFRCharacter) {
+    // var index: number = -1;
+    // find the index to remove
+    // do {} while (true);
+    // this._cfrString.splice(index, 0);
+  }
+
   public insertString(props: {
     text: string;
     userId: string;
@@ -40,8 +85,8 @@ export class CFRString {
           newUId[newUId.length - 1].userId == props.userId &&
           //if next element doesn't exist or if next element is of different root
           (!this._cfrString[props.globalPos + i] ||
-            this._cfrString[props.globalPos + i].uniqueId.length <
-              newUId.length)
+            this._cfrString[props.globalPos + i].uniqueId[0].relativePos >
+              newUId[0].relativePos)
         ) {
           var _id = Object.assign({}, newUId[newUId.length - 1]);
           _id.relativePos++;
