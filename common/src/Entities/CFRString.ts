@@ -194,7 +194,15 @@ export class CFRString {
     }
   }
 
-  public localRemove(props: {
+  public deleteString(props: {
+    text: string;
+    userId: string;
+    globalPos: number;
+  }): ICharOpSequence {
+    return this.localRemove(props);
+  }
+
+  private localRemove(props: {
     text: string;
     userId: string;
     globalPos: number;
