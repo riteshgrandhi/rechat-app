@@ -116,17 +116,18 @@ class Editor extends React.Component<IEditorProps, IEditorState> {
     if (!(e.ctrlKey && e.which == Key.V)) {
       switch (e.which) {
         case Key.Backspace: {
-          text = val.slice(_start == _end ? _start - 1 : _start, _end);
-          deleteOpSequence = this.CFRDocument.deleteString({
+          let _s: number = _start == _end ? _start - 1 : _start;
+          text = val.slice(_s, _end);
+          deleteOpSequence = this.CFRDocument.localRemove({
             text: text,
             userId: this.socket.id,
-            globalPos: _start
+            globalPos: _s
           });
           break;
         }
         case Key.Delete: {
           text = val.slice(_start, _start == _end ? _end + 1 : _end);
-          deleteOpSequence = this.CFRDocument.deleteString({
+          deleteOpSequence = this.CFRDocument.localRemove({
             text: text,
             userId: this.socket.id,
             globalPos: _start
@@ -136,7 +137,7 @@ class Editor extends React.Component<IEditorProps, IEditorState> {
         default: {
           if (_start != _end) {
             text = val.slice(_start, _end);
-            deleteOpSequence = this.CFRDocument.deleteString({
+            deleteOpSequence = this.CFRDocument.localRemove({
               text: text,
               userId: this.socket.id,
               globalPos: _start
@@ -175,7 +176,7 @@ class Editor extends React.Component<IEditorProps, IEditorState> {
 
     if (_start != _end) {
       text = val.slice(_start, _end);
-      deleteOpSequence = this.CFRDocument.deleteString({
+      deleteOpSequence = this.CFRDocument.localRemove({
         text: text,
         userId: this.socket.id,
         globalPos: _start
