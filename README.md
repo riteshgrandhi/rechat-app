@@ -1,6 +1,6 @@
-# ReChat App
+# Remarc App
 
-Just another simple chat application made using React, Express and Socket
+A Real-time text editor made using React, Express and Socket
 
 ## How to run
 `npm install`
