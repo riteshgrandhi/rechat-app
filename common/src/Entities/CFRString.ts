@@ -3,30 +3,40 @@ import { ICFRCharacter, ICharOpSequence, OpType, ICharId } from "./Entities";
 export class CFRString {
   private _cfrString: ICFRCharacter[];
 
-  // constructor(props?: { text: string; userId: string }) {
-  constructor(props?: { text: string; userId: string }) {
+  constructor() {
     this._cfrString = [
-      // {
-      //   char: "##start##",
-      //   uniqueId: [{ relativePos: 0, userId: "$$default$$" }]
-      // },
-      // { char: "##end##", uniqueId: [{ relativePos: 1, userId: "$$default$$" }] }
     ];
-    // if (props) {
-    //   this.convertFromString(props);
-    // }
   }
 
-  // public convertFromString(props: { text: string; userId: string }) {
-  //   let res: ICFRCharacter[] = [];
-  //   for (let i = 0; i < props.text.length; i++) {
-  //     res.push({
-  //       char: props.text[i],
-  //       uniqueId: [{ relativePos: i, userId: props.userId }]
-  //     });
-  //   }
-  //   this._cfrString = res;
-  // }
+  private static compareUid(id1: ICharId[], id2: ICharId[]): number {
+    let i: number = 0;
+    let flag: number = 0;
+
+    while (id1[i] && id2[i]) {
+      if (id1[i].relativePos < id2[i].relativePos) {
+        flag = -1;
+        break;
+      } else if (id1[i].relativePos > id2[i].relativePos) {
+        flag = 1;
+        break;
+      } else {
+        flag = 0;
+      }
+      i++;
+    }
+
+    if (flag == 0) {
+      if (id1[i] != null && id2[i] == null) {
+        // flag = id1[i].relativePos < 0 ? -1 : 1;
+        flag = 1;
+      } else if (id1[i] == null && id2[i] != null) {
+        // flag = id2[i].relativePos < 0 ? -1 : 1;
+        flag = -1;
+      }
+    }
+
+    return flag;
+  }
 
   public get() {
     return this._cfrString;
@@ -36,45 +46,36 @@ export class CFRString {
     opSequence.forEach(op => {
       switch (op.type) {
         case OpType.ADD: {
-          this.insertCfrCharacter(op.cfrCharacter);
+          this.remoteInsert(op.cfrCharacter);
+          break;
         }
         case OpType.DELETE: {
-          this.deleteCfrCharacter(op.cfrCharacter);
+          this.remoteRemove(op.cfrCharacter);
+          break;
         }
       }
     });
   }
 
-  private insertCfrCharacter(char: ICFRCharacter) {
-    let index: number = -1;
-    let level: number = 0;
+  private remoteInsert(char: ICFRCharacter) {
     // find the index to insert
-    for (let i = 0; i < this._cfrString.length; i++) {
-      if (
-        this._cfrString[i].uniqueId[level].relativePos ==
-        char.uniqueId[level].relativePos
-      ) {
-        index = i;
-        level++;
-        if (
-          level >= char.uniqueId.length - 1 ||
-          level >= this._cfrString[i].uniqueId.length - 1
-        ) {
-          break;
-        }
-      }
+    let index: number = this.findIndexToInsert(char);
+    if (index < 0) {
+      console.log("Error");
+      return;
     }
-    if (index == -1) {
-      index = this._cfrString.length;
-    }
+    console.log("found insertion index: " + index);
     this._cfrString.splice(index, 0, char);
   }
 
-  private deleteCfrCharacter(char: ICFRCharacter) {
-    // let index: number = -1;
+  private remoteRemove(char: ICFRCharacter) {
     // find the index to remove
-    // do {} while (true);
-    // this._cfrString.splice(index, 0);
+    let index: number = this.findIndexToRemove(char);
+    if (index >= 0) {
+      this._cfrString.splice(index, 1);
+    } else {
+      console.log("Error");
+    }
   }
 
   public insertString(props: {
@@ -83,39 +84,16 @@ export class CFRString {
     globalPos: number;
   }): ICharOpSequence {
     let _opSequence: ICharOpSequence = [];
+
     for (let i = 0; i < props.text.length; i++) {
       let _cfrChar: ICFRCharacter = this.localInsert({
         char: props.text[i],
         userId: props.userId,
         globalPos: props.globalPos + i
       });
-      // let newUId: ICharId[] = [];
-      // if (this._cfrString[props.globalPos + i - 1]) {
-      //   newUId = this._cfrString[props.globalPos + i - 1].uniqueId.slice();
-      //   if (
-      //     //if same user made previous edit
-      //     newUId[newUId.length - 1].userId == props.userId &&
-      //     //if next element doesn't exist or if next element is of different root
-      //     (!this._cfrString[props.globalPos + i] ||
-      //       this._cfrString[props.globalPos + i].uniqueId[0].relativePos >
-      //         newUId[0].relativePos)
-      //   ) {
-      //     let _id = Object.assign({}, newUId[newUId.length - 1]);
-      //     _id.relativePos++;
-      //     newUId[newUId.length - 1] = _id;
-      //   } else {
-      //     newUId.push({ relativePos: i, userId: props.userId });
-      //   }
-      // } else {
-      //   newUId.push({ relativePos: i, userId: props.userId });
-      // }
-      // let _cfrChar: ICFRCharacter = {
-      //   char: props.text[i],
-      //   uniqueId: newUId
-      // };
-      // this._cfrString.splice(props.globalPos + i, 0, _cfrChar);
       _opSequence.push({ type: OpType.ADD, cfrCharacter: _cfrChar });
     }
+
     return _opSequence;
   }
 
@@ -143,6 +121,7 @@ export class CFRString {
     this._cfrString.splice(props.globalPos, 0, _cfrChar);
     console.log(`inserted ${props.char} at ${props.globalPos} with id:`);
     console.log(uIdNew);
+
     return _cfrChar;
   }
 
@@ -191,6 +170,96 @@ export class CFRString {
       }
     } else {
       throw "Order Mismatch";
+    }
+  }
+
+  private findIndexToRemove(char: ICFRCharacter): number {
+    var index: number = this.findIndexToRemoveBinary(
+      char,
+      0,
+      this._cfrString.length == 0 ? 0 : this._cfrString.length - 1
+    );
+
+    console.log("found removal index: " + index);
+    return index;
+  }
+
+  private findIndexToInsert(char: ICFRCharacter): number {
+    if (this._cfrString.length == 0) {
+      return 0;
+    }
+
+    let res: number;
+    let len: number = this._cfrString.length - 1;
+
+    res = CFRString.compareUid(char.uniqueId, this._cfrString[0].uniqueId);
+    if (res < 0) {
+      return 0;
+    }
+
+    res = CFRString.compareUid(char.uniqueId, this._cfrString[len].uniqueId);
+    if (res > 0) {
+      return len + 1;
+    }
+
+    return this.findIndextoInsertBinary(char, 0, len);
+  }
+
+  private findIndexToRemoveBinary(
+    cfrChar: ICFRCharacter,
+    start: number,
+    end: number
+  ): number {
+    let mid: number = Math.floor((start + end) / 2);
+    let res: number = CFRString.compareUid(
+      cfrChar.uniqueId,
+      this._cfrString[mid].uniqueId
+    );
+    if (start >= end && res != 0) {
+      return -1;
+    }
+    // found match
+    if (res < 0) {
+      return this.findIndexToRemoveBinary(cfrChar, start, mid - 1);
+    } else if (res > 0) {
+      return this.findIndexToRemoveBinary(cfrChar, mid + 1, end);
+    } else {
+      if (cfrChar.char != this._cfrString[mid].char) {
+        throw "Character Mismatch";
+      }
+      return mid;
+    }
+  }
+
+  private findIndextoInsertBinary(
+    cfrChar: ICFRCharacter,
+    start: number,
+    end: number
+  ): number {
+    let mid: number = Math.floor((start + end) / 2);
+    let res: number = CFRString.compareUid(
+      cfrChar.uniqueId,
+      this._cfrString[mid].uniqueId
+    );
+
+    if (start + 1 == end) {
+      let res_next: number = CFRString.compareUid(
+        cfrChar.uniqueId,
+        this._cfrString[mid + 1].uniqueId
+      );
+      if (res > 0 && res_next < 0) {
+        return mid + 1;
+      } else {
+        throw "Not Found";
+      }
+    } else {
+      if (res < 0) {
+        return this.findIndextoInsertBinary(cfrChar, start, mid);
+      } else if (res > 0) {
+        return this.findIndextoInsertBinary(cfrChar, mid, end);
+      } else {
+        throw "Same uId Found";
+      }
     }
   }
 

@@ -182,6 +182,7 @@ class Editor extends React.Component<IEditorProps, IEditorState> {
         globalPos: _start
       });
     }
+    
     text = e.clipboardData.getData("text/plain");
     let insertOpSequence: ICharOpSequence = this.CFRDocument.insertString({
       text: text,
