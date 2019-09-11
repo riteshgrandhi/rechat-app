@@ -102,25 +102,26 @@ class Editor extends React.Component<IEditorProps, IEditorState> {
       return false;
     }
 
-    var text: string;
-    var val = this.state.document;
-    var target = e.target as HTMLTextAreaElement;
+    let text: string;
+    let val = this.state.document;
+    let target = e.target as HTMLTextAreaElement;
 
-    var _start = target.selectionStart;
-    var _end = target.selectionEnd;
+    let _start = target.selectionStart;
+    let _end = target.selectionEnd;
 
-    var deleteOpSequence: ICharOpSequence = [];
-    var insertOpSequence: ICharOpSequence = [];
-    var opSequence: ICharOpSequence = [];
+    let deleteOpSequence: ICharOpSequence = [];
+    let insertOpSequence: ICharOpSequence = [];
+    let opSequence: ICharOpSequence = [];
 
     if (!(e.ctrlKey && e.which == Key.V)) {
       switch (e.which) {
         case Key.Backspace: {
-          text = val.slice(_start == _end ? _start - 1 : _start, _end);
+          let _s: number = _start == _end ? _start - 1 : _start;
+          text = val.slice(_s, _end);
           deleteOpSequence = this.CFRDocument.deleteString({
             text: text,
             userId: this.socket.id,
-            globalPos: _start
+            globalPos: _s
           });
           break;
         }
@@ -162,16 +163,16 @@ class Editor extends React.Component<IEditorProps, IEditorState> {
   }
 
   private onPaste(e: React.ClipboardEvent) {
-    var text: string;
+    let text: string;
 
-    var val = this.state.document;
-    var target = e.target as HTMLTextAreaElement;
+    let val = this.state.document;
+    let target = e.target as HTMLTextAreaElement;
 
-    var _start = target.selectionStart;
-    var _end = target.selectionEnd;
+    let _start = target.selectionStart;
+    let _end = target.selectionEnd;
 
-    var deleteOpSequence: ICharOpSequence = [];
-    var opSequence: ICharOpSequence = [];
+    let deleteOpSequence: ICharOpSequence = [];
+    let opSequence: ICharOpSequence = [];
 
     if (_start != _end) {
       text = val.slice(_start, _end);
@@ -181,8 +182,9 @@ class Editor extends React.Component<IEditorProps, IEditorState> {
         globalPos: _start
       });
     }
+    
     text = e.clipboardData.getData("text/plain");
-    var insertOpSequence: ICharOpSequence = this.CFRDocument.insertString({
+    let insertOpSequence: ICharOpSequence = this.CFRDocument.insertString({
       text: text,
       userId: this.socket.id,
       globalPos: _start
