@@ -6,6 +6,11 @@ export enum Events {
   SERVER_TEXT_UPDATE = "server_text_update",
   CLIENT_TEXT_UPDATE = "client_text_update"
 }
+export enum IEquality {
+  LESSER = -1,
+  EQUAL = 0,
+  GREATER = 1
+}
 export interface ICharOpSequence
   extends Array<{ type: OpType; cfrCharacter: ICFRCharacter }> {}
 
@@ -16,4 +21,8 @@ export interface ICFRCharacter {
 export interface ICharId {
   relativePos: number;
   userId: string;
+}
+export interface IComparisonResult {
+  equality: IEquality;
+  // uidTieBreak: number;
 }

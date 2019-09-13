@@ -17,10 +17,12 @@ interface IEditorProps extends RouteComponentProps {}
 class Editor extends React.Component<IEditorProps, IEditorState> {
   private socket: SocketIOClient.Socket;
   private CFRDocument: CFRString;
+  private textareaElem: HTMLTextAreaElement;
 
   constructor(props: IEditorProps) {
     super(props);
 
+    this.textareaElem = {} as HTMLTextAreaElement;
     this.state = {
       title: "",
       document: ""
@@ -44,8 +46,16 @@ class Editor extends React.Component<IEditorProps, IEditorState> {
 
   private onServerTextUpdate(opSequence: ICharOpSequence) {
     console.log(opSequence);
-    this.CFRDocument.applyOpSequence(opSequence);
-    this.setState({ document: this.CFRDocument.getText() });
+    let currentSelection = {
+      start: this.textareaElem.selectionStart,
+      end: this.textareaElem.selectionStart
+    };
+    this.CFRDocument.applyOpSequence(opSequence, currentSelection);
+    this.CFRDocument.print();
+    this.setState({ document: this.CFRDocument.getText() }, () => {
+      this.textareaElem.selectionStart = currentSelection.start;
+      this.textareaElem.selectionEnd = currentSelection.end;
+    });
   }
 
   componentDidMount() {
@@ -74,6 +84,7 @@ class Editor extends React.Component<IEditorProps, IEditorState> {
       (e.shiftKey && e.which == Key.Shift) ||
       e.ctrlKey ||
       e.altKey ||
+      e.metaKey ||
       e.which == Key.Tab ||
       e.which == Key.LeftArrow ||
       e.which == Key.RightArrow ||
@@ -182,7 +193,7 @@ class Editor extends React.Component<IEditorProps, IEditorState> {
         globalPos: _start
       });
     }
-    
+
     text = e.clipboardData.getData("text/plain");
     let insertOpSequence: ICharOpSequence = this.CFRDocument.insertString({
       text: text,
@@ -211,6 +222,9 @@ class Editor extends React.Component<IEditorProps, IEditorState> {
             onChange={e => this.setState({ document: e.target.value })}
             onKeyDown={this.onKeyDown}
             onPaste={this.onPaste}
+            ref={(e: HTMLTextAreaElement) => {
+              this.textareaElem = e;
+            }}
           />
         </div>
       </div>

@@ -1,63 +1,87 @@
-import { ICFRCharacter, ICharOpSequence, OpType, ICharId } from "./Entities";
+import {
+  ICFRCharacter,
+  ICharOpSequence,
+  OpType,
+  ICharId,
+  IComparisonResult,
+  IEquality
+} from "./Entities";
 
 export class CFRString {
   private _cfrString: ICFRCharacter[];
 
   constructor() {
-    this._cfrString = [
-    ];
+    this._cfrString = [];
+    let t: number = 0;
   }
 
-  private static compareUid(id1: ICharId[], id2: ICharId[]): number {
+  private static compareUid(id1: ICharId[], id2: ICharId[]): IComparisonResult {
     let i: number = 0;
-    let flag: number = 0;
+    let flag: IEquality = IEquality.EQUAL;
+    let tieBreak: IEquality = IEquality.EQUAL;
 
     while (id1[i] && id2[i]) {
       if (id1[i].relativePos < id2[i].relativePos) {
-        flag = -1;
+        flag = IEquality.LESSER;
         break;
       } else if (id1[i].relativePos > id2[i].relativePos) {
-        flag = 1;
+        flag = IEquality.GREATER;
         break;
       } else {
-        flag = 0;
+        if (id1[i].userId != id2[i].userId && tieBreak == 0) {
+          tieBreak =
+            id1[i].userId < id2[i].userId
+              ? IEquality.LESSER
+              : IEquality.GREATER;
+        }
+        flag = IEquality.EQUAL;
       }
       i++;
     }
 
-    if (flag == 0) {
+    if (flag == IEquality.EQUAL) {
       if (id1[i] != null && id2[i] == null) {
         // flag = id1[i].relativePos < 0 ? -1 : 1;
-        flag = 1;
+        flag = IEquality.GREATER;
       } else if (id1[i] == null && id2[i] != null) {
         // flag = id2[i].relativePos < 0 ? -1 : 1;
-        flag = -1;
+        flag = IEquality.LESSER;
       }
     }
 
-    return flag;
+    if (flag == 0 && tieBreak != 0) {
+      flag = tieBreak;
+    }
+
+    return { equality: flag /*, uidTieBreak: tieBreak*/ };
   }
 
   public get() {
     return this._cfrString;
   }
 
-  public applyOpSequence(opSequence: ICharOpSequence) {
+  public applyOpSequence(
+    opSequence: ICharOpSequence,
+    currentSelection: { start: number; end: number }
+  ) {
     opSequence.forEach(op => {
       switch (op.type) {
         case OpType.ADD: {
-          this.remoteInsert(op.cfrCharacter);
+          this.remoteInsert(op.cfrCharacter, currentSelection);
           break;
         }
         case OpType.DELETE: {
-          this.remoteRemove(op.cfrCharacter);
+          this.remoteRemove(op.cfrCharacter, currentSelection);
           break;
         }
       }
     });
   }
 
-  private remoteInsert(char: ICFRCharacter) {
+  private remoteInsert(
+    char: ICFRCharacter,
+    currentSelection?: { start: number; end: number }
+  ) {
     // find the index to insert
     let index: number = this.findIndexToInsert(char);
     if (index < 0) {
@@ -65,17 +89,35 @@ export class CFRString {
       return;
     }
     console.log("found insertion index: " + index);
+    if (currentSelection) {
+      if (index <= currentSelection.start) {
+        currentSelection.start += 1;
+      }
+      if (index <= currentSelection.end) {
+        currentSelection.end += 1;
+      }
+    }
+
     this._cfrString.splice(index, 0, char);
   }
 
-  private remoteRemove(char: ICFRCharacter) {
+  private remoteRemove(
+    char: ICFRCharacter,
+    currentSelection: { start: number; end: number }
+  ) {
     // find the index to remove
     let index: number = this.findIndexToRemove(char);
-    if (index >= 0) {
-      this._cfrString.splice(index, 1);
-    } else {
+    if (index < 0) {
       console.log("Error");
+      return;
     }
+    if (index <= currentSelection.start) {
+      currentSelection.start -= 1;
+    }
+    if (index <= currentSelection.end) {
+      currentSelection.end -= 1;
+    }
+    this._cfrString.splice(index, 1);
   }
 
   public insertString(props: {
@@ -189,16 +231,16 @@ export class CFRString {
       return 0;
     }
 
-    let res: number;
+    let res: IComparisonResult;
     let len: number = this._cfrString.length - 1;
 
     res = CFRString.compareUid(char.uniqueId, this._cfrString[0].uniqueId);
-    if (res < 0) {
+    if (res.equality == IEquality.LESSER) {
       return 0;
     }
 
     res = CFRString.compareUid(char.uniqueId, this._cfrString[len].uniqueId);
-    if (res > 0) {
+    if (res.equality == IEquality.GREATER) {
       return len + 1;
     }
 
@@ -211,17 +253,17 @@ export class CFRString {
     end: number
   ): number {
     let mid: number = Math.floor((start + end) / 2);
-    let res: number = CFRString.compareUid(
+    let res: IComparisonResult = CFRString.compareUid(
       cfrChar.uniqueId,
       this._cfrString[mid].uniqueId
     );
-    if (start >= end && res != 0) {
+    if (start >= end && res.equality != IEquality.EQUAL) {
       return -1;
     }
     // found match
-    if (res < 0) {
+    if (res.equality == IEquality.LESSER) {
       return this.findIndexToRemoveBinary(cfrChar, start, mid - 1);
-    } else if (res > 0) {
+    } else if (res.equality == IEquality.GREATER) {
       return this.findIndexToRemoveBinary(cfrChar, mid + 1, end);
     } else {
       if (cfrChar.char != this._cfrString[mid].char) {
@@ -237,25 +279,28 @@ export class CFRString {
     end: number
   ): number {
     let mid: number = Math.floor((start + end) / 2);
-    let res: number = CFRString.compareUid(
+    let res: IComparisonResult = CFRString.compareUid(
       cfrChar.uniqueId,
       this._cfrString[mid].uniqueId
     );
 
     if (start + 1 == end) {
-      let res_next: number = CFRString.compareUid(
+      let res_next: IComparisonResult = CFRString.compareUid(
         cfrChar.uniqueId,
         this._cfrString[mid + 1].uniqueId
       );
-      if (res > 0 && res_next < 0) {
+      if (
+        res.equality == IEquality.GREATER &&
+        res_next.equality == IEquality.LESSER
+      ) {
         return mid + 1;
       } else {
         throw "Not Found";
       }
     } else {
-      if (res < 0) {
+      if (res.equality == IEquality.LESSER) {
         return this.findIndextoInsertBinary(cfrChar, start, mid);
-      } else if (res > 0) {
+      } else if (res.equality == IEquality.GREATER) {
         return this.findIndextoInsertBinary(cfrChar, mid, end);
       } else {
         throw "Same uId Found";

@@ -20,9 +20,10 @@ export default class ChangeHandler {
 
     socket.on(Events.CLIENT_TEXT_UPDATE, (data: ICharOpSequence) => {
       console.log(`recieveing ${data}`);
-      // var doc: CFRString = new CFRString();
       // doc.convertFromString({ text: "hello", userId: socket.id });
-      socket.broadcast.emit(Events.SERVER_TEXT_UPDATE, data);
+      setTimeout(() => {
+        socket.broadcast.emit(Events.SERVER_TEXT_UPDATE, data);
+      }, 5000);
     });
   }
 }
