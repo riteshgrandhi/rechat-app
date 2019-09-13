@@ -4,12 +4,14 @@ import styles from "./app.module.scss";
 import { InfoPanel } from "./InfoPanel";
 import { RouteComponentProps } from "@reach/router";
 // import { Events, OpType, ICharOpSequence, CFRString } from "remarc-app-common";
-import { ICharOpSequence, CFRString, Events } from "@common";
+import { ICharOpSequence, CFRString, Events, ICaretEventData } from "@common";
 import { Key } from "ts-keycode-enum";
+import getCaretCoordinates from "textarea-caret";
 
 interface IEditorState {
   title: string;
   document: string;
+  floatingCarets: ICaretEventData[];
 }
 
 interface IEditorProps extends RouteComponentProps {}
@@ -18,17 +20,23 @@ class Editor extends React.Component<IEditorProps, IEditorState> {
   private socket: SocketIOClient.Socket;
   private CFRDocument: CFRString;
   private textareaElem: HTMLTextAreaElement;
+  private caretPosition: number;
 
   constructor(props: IEditorProps) {
     super(props);
 
     this.textareaElem = {} as HTMLTextAreaElement;
+    this.caretPosition = 0;
     this.state = {
       title: "",
-      document: ""
+      document: "",
+      floatingCarets: []
     };
 
+    this.checkCaret = this.checkCaret.bind(this);
+    this.addCaretListeners = this.addCaretListeners.bind(this);
     this.onServerTextUpdate = this.onServerTextUpdate.bind(this);
+    this.updateUserCarets = this.updateUserCarets.bind(this);
     this.onKeyDown = this.onKeyDown.bind(this);
     this.onPaste = this.onPaste.bind(this);
     this.socket = io();
@@ -42,6 +50,7 @@ class Editor extends React.Component<IEditorProps, IEditorState> {
     });
 
     this.socket.on(Events.SERVER_TEXT_UPDATE, this.onServerTextUpdate);
+    this.socket.on(Events.CARET_POSITION_CHANGE, this.updateUserCarets);
   }
 
   private onServerTextUpdate(opSequence: ICharOpSequence) {
@@ -77,7 +86,6 @@ class Editor extends React.Component<IEditorProps, IEditorState> {
     ) {
       e.preventDefault();
     }
-    // console.log(e.which, e.shiftKey, e.keyCode);
 
     if (
       e.which == 0 ||
@@ -211,11 +219,67 @@ class Editor extends React.Component<IEditorProps, IEditorState> {
     this.socket.emit(Events.CLIENT_TEXT_UPDATE, opSequence);
   }
 
+  private updateUserCarets(data: ICaretEventData) {
+    let _carets = this.state.floatingCarets;
+    let i = _carets.findIndex(c => c.userId == data.userId);
+    if (i >= 0) {
+      _carets[i].caret = data.caret;
+    } else {
+      _carets.push(data);
+    }
+    this.setState({ floatingCarets: _carets });
+  }
+
+  private checkCaret() {
+    const newPos = this.textareaElem.selectionStart;
+    if (newPos !== this.caretPosition) {
+      this.caretPosition = newPos;
+      let caretCoordinates = getCaretCoordinates(
+        this.textareaElem,
+        this.caretPosition //,
+        // {
+        //   debug: true
+        // }
+      );
+      let data: ICaretEventData = {
+        userId: this.socket.id,
+        caret: caretCoordinates
+      };
+      console.log("Caret change to " + newPos);
+      console.log(caretCoordinates);
+      this.socket.emit(Events.CARET_POSITION_CHANGE, data);
+    }
+  }
+
+  private addCaretListeners() {
+    this.textareaElem.addEventListener("keypress", this.checkCaret); // Every character written
+    this.textareaElem.addEventListener("mousedown", this.checkCaret); // Click down
+    this.textareaElem.addEventListener("touchstart", this.checkCaret); // Mobile
+    this.textareaElem.addEventListener("input", this.checkCaret); // Other input events
+    this.textareaElem.addEventListener("paste", this.checkCaret); // Clipboard actions
+    this.textareaElem.addEventListener("cut", this.checkCaret);
+    this.textareaElem.addEventListener("mousemove", this.checkCaret); // Selection, dragging text
+    this.textareaElem.addEventListener("select", this.checkCaret); // Some browsers support this event
+    this.textareaElem.addEventListener("selectstart", this.checkCaret); // Some browsers support this event
+  }
+
   render() {
     return (
       <div className={styles.app}>
         <InfoPanel />
         <div className={styles.editor}>
+          {this.state.floatingCarets.map(userCaret => (
+            <span
+              style={{
+                position: "absolute",
+                left: this.textareaElem.offsetLeft + userCaret.caret.left,
+                top: this.textareaElem.offsetTop + userCaret.caret.top + 20,
+                backgroundColor: "black"
+              }}
+            >
+              {userCaret.userId}
+            </span>
+          ))}
           <textarea
             className={styles.textarea}
             value={this.state.document}
@@ -224,6 +288,9 @@ class Editor extends React.Component<IEditorProps, IEditorState> {
             onPaste={this.onPaste}
             ref={(e: HTMLTextAreaElement) => {
               this.textareaElem = e;
+              if (this.textareaElem) {
+                this.addCaretListeners();
+              }
             }}
           />
         </div>
