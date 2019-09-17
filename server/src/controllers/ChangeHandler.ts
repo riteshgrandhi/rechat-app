@@ -1,8 +1,8 @@
 import {
   Events,
-  ICharOpSequence,
-  CFRString,
-  ICaretEventData
+  IChangeEventData,
+  ICaretEventData,
+  IClientJoinData
 } from "remarc-app-common";
 
 export default class ChangeHandler {
@@ -19,20 +19,27 @@ export default class ChangeHandler {
 
   private onConnection(socket: SocketIO.Socket) {
     console.log("New Connection Estabished!" + socket.id);
-    this.io.sockets.emit("new_notification", {
-      message: `You are connected!`
+
+    // this.io.sockets.emit("new_notification", {
+    //   message: `You are connected!`
+    // });
+
+    // socket.join()
+
+    socket.on(Events.CLIENT_JOIN_MARC, (data: IClientJoinData) => {
+      socket.join("room_" + data.marcId);
+      console.log(socket.adapter.rooms);
     });
 
-    socket.on(Events.CLIENT_TEXT_UPDATE, (data: ICharOpSequence) => {
+    socket.on(Events.CLIENT_TEXT_UPDATE, (data: IChangeEventData) => {
       console.log(`recieveing ${data}`);
-      // doc.convertFromString({ text: "hello", userId: socket.id });
       // setTimeout(() => {
-      socket.broadcast.emit(Events.SERVER_TEXT_UPDATE, data);
+      socket.to("room_" + data.marcId).emit(Events.SERVER_TEXT_UPDATE, data);
       // }, 5000);
     });
 
     socket.on(Events.CARET_POSITION_CHANGE, (data: ICaretEventData) => {
-      socket.broadcast.emit(Events.CARET_POSITION_CHANGE, data);
+      socket.to("room_" + data.marcId).emit(Events.CARET_POSITION_CHANGE, data);
     });
   }
 }

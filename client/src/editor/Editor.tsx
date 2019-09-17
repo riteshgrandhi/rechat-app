@@ -1,20 +1,29 @@
-import React from "react";
+import React, { Fragment } from "react";
 import io from "socket.io-client";
 import styles from "./app.module.scss";
 import { InfoPanel } from "./InfoPanel";
-import { RouteComponentProps } from "@reach/router";
+import { RouteComponentProps, navigate } from "@reach/router";
 // import { Events, OpType, ICharOpSequence, CFRString } from "remarc-app-common";
-import { ICharOpSequence, CFRString, Events, ICaretEventData } from "@common";
+import {
+  ICharOpSequence,
+  CFRString,
+  Events,
+  ICaretEventData,
+  IClientJoinData,
+  IChangeEventData,
+  IMarc
+} from "@common";
 import { Key } from "ts-keycode-enum";
 import getCaretCoordinates from "textarea-caret";
 
 interface IEditorState {
-  title: string;
   document: string;
+  marc: IMarc;
   floatingCarets: ICaretEventData[];
+  isLoading: boolean;
 }
 
-interface IEditorProps extends RouteComponentProps {}
+interface IEditorProps extends RouteComponentProps<{ marcId: string }> {}
 
 class Editor extends React.Component<IEditorProps, IEditorState> {
   private socket: SocketIOClient.Socket;
@@ -28,9 +37,10 @@ class Editor extends React.Component<IEditorProps, IEditorState> {
     this.textareaElem = {} as HTMLTextAreaElement;
     this.caretPosition = 0;
     this.state = {
-      title: "",
       document: "",
-      floatingCarets: []
+      floatingCarets: [],
+      marc: { id: "" },
+      isLoading: true
     };
 
     this.checkCaret = this.checkCaret.bind(this);
@@ -41,19 +51,59 @@ class Editor extends React.Component<IEditorProps, IEditorState> {
     this.onPaste = this.onPaste.bind(this);
     this.socket = io();
     this.CFRDocument = new CFRString();
-    this.initSocketListeners();
+    if (!this.props.marcId) {
+      throw "Id Cannot be null";
+    }
+    this.getMarcById(this.props.marcId)
+      .then((_marc: IMarc) => {
+        this.setState({ marc: _marc, isLoading: false }, () => {
+          this.initSocketListeners();
+        });
+      })
+      .catch(err => {
+        navigate("/error", {
+          state: {
+            error: err,
+            message: `Failed to Fetch Marc: ${this.props.marcId}`
+          }
+        });
+      });
   }
 
   private initSocketListeners() {
+    if (!this.props.marcId) {
+      throw "Id Cannot be null";
+    }
     this.socket.on("connect", (data: any) => {
       console.log(data);
     });
 
     this.socket.on(Events.SERVER_TEXT_UPDATE, this.onServerTextUpdate);
     this.socket.on(Events.CARET_POSITION_CHANGE, this.updateUserCarets);
+
+    let _joinData: IClientJoinData = {
+      marcId: this.props.marcId
+    };
+    this.socket.emit(Events.CLIENT_JOIN_MARC, _joinData);
   }
 
-  private onServerTextUpdate(opSequence: ICharOpSequence) {
+  private async getMarcById(marcId: string): Promise<IMarc> {
+    try {
+      let res: { data: IMarc; error?: any } = await fetch(
+        `/api/marcs/${marcId}`
+      ).then(res => res.json());
+      if (res.error) {
+        throw res;
+      }
+      return res.data;
+    } catch (ex) {
+      console.log("Failed to Fetch");
+      throw ex;
+    }
+  }
+
+  private onServerTextUpdate(data: IChangeEventData) {
+    let opSequence: ICharOpSequence = data.opSequence;
     console.log(opSequence);
     let currentSelection = {
       start: this.textareaElem.selectionStart,
@@ -65,18 +115,6 @@ class Editor extends React.Component<IEditorProps, IEditorState> {
       this.textareaElem.selectionStart = currentSelection.start;
       this.textareaElem.selectionEnd = currentSelection.end;
     });
-  }
-
-  componentDidMount() {
-    this.getData().then(data => {
-      this.setState({
-        title: data.express
-      });
-    });
-  }
-
-  getData() {
-    return fetch("/api/data").then(resp => resp.json());
   }
 
   private onKeyDown(e: React.KeyboardEvent) {
@@ -216,7 +254,14 @@ class Editor extends React.Component<IEditorProps, IEditorState> {
   }
 
   private sendOperationList(opSequence: ICharOpSequence) {
-    this.socket.emit(Events.CLIENT_TEXT_UPDATE, opSequence);
+    if (!this.props.marcId) {
+      throw "Id Cannot be null";
+    }
+    let data: IChangeEventData = {
+      opSequence: opSequence,
+      marcId: this.props.marcId
+    };
+    this.socket.emit(Events.CLIENT_TEXT_UPDATE, data);
   }
 
   private updateUserCarets(data: ICaretEventData) {
@@ -231,6 +276,9 @@ class Editor extends React.Component<IEditorProps, IEditorState> {
   }
 
   private checkCaret() {
+    if (!this.props.marcId) {
+      throw "Id Cannot be null";
+    }
     const newPos = this.textareaElem.selectionStart;
     if (newPos !== this.caretPosition) {
       this.caretPosition = newPos;
@@ -242,6 +290,7 @@ class Editor extends React.Component<IEditorProps, IEditorState> {
         // }
       );
       let data: ICaretEventData = {
+        marcId: this.props.marcId,
         userId: this.socket.id,
         caret: caretCoordinates
       };
@@ -265,36 +314,40 @@ class Editor extends React.Component<IEditorProps, IEditorState> {
 
   render() {
     return (
-      <div className={styles.app}>
-        <InfoPanel />
-        <div className={styles.editor}>
-          {this.state.floatingCarets.map(userCaret => (
-            <span
-              style={{
-                position: "absolute",
-                left: this.textareaElem.offsetLeft + userCaret.caret.left,
-                top: this.textareaElem.offsetTop + userCaret.caret.top + 20,
-                backgroundColor: "black"
-              }}
-            >
-              {userCaret.userId}
-            </span>
-          ))}
-          <textarea
-            className={styles.textarea}
-            value={this.state.document}
-            onChange={e => this.setState({ document: e.target.value })}
-            onKeyDown={this.onKeyDown}
-            onPaste={this.onPaste}
-            ref={(e: HTMLTextAreaElement) => {
-              this.textareaElem = e;
-              if (this.textareaElem) {
-                this.addCaretListeners();
-              }
-            }}
-          />
-        </div>
-      </div>
+      <Fragment>
+        {!this.state.isLoading && (
+          <div className={styles.app}>
+            <InfoPanel />
+            <div className={styles.editor}>
+              {this.state.floatingCarets.map(userCaret => (
+                <span
+                  style={{
+                    position: "absolute",
+                    left: this.textareaElem.offsetLeft + userCaret.caret.left,
+                    top: this.textareaElem.offsetTop + userCaret.caret.top + 20,
+                    backgroundColor: "black"
+                  }}
+                >
+                  {userCaret.userId}
+                </span>
+              ))}
+              <textarea
+                className={styles.textarea}
+                value={this.state.document}
+                onChange={e => this.setState({ document: e.target.value })}
+                onKeyDown={this.onKeyDown}
+                onPaste={this.onPaste}
+                ref={(e: HTMLTextAreaElement) => {
+                  this.textareaElem = e;
+                  if (this.textareaElem) {
+                    this.addCaretListeners();
+                  }
+                }}
+              />
+            </div>
+          </div>
+        )}
+      </Fragment>
     );
   }
 }

@@ -5,6 +5,7 @@ import { Router, Redirect } from "@reach/router";
 
 import Home from "./home/Home";
 import Editor from "./editor/Editor";
+import ErrorPage from "./other/ErrorPage";
 
 class App extends React.Component {
   render() {
@@ -12,7 +13,8 @@ class App extends React.Component {
       <div>
         <Router>
           <Home path="/" />
-          <Editor path="/edit/:marcid" />
+          <Editor path="/edit/:marcId"/>
+          <ErrorPage path= "/error"/>
           <Redirect default noThrow from="*" to="/" />
         </Router>
       </div>

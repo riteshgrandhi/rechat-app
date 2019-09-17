@@ -1,5 +1,5 @@
 import express, { Application } from "express";
-import DataController from "./controllers/DataController";
+import MarcsController from "./controllers/MarcsController";
 import socketio from "socket.io";
 import ChangeHandler from "./controllers/ChangeHandler";
 
@@ -19,7 +19,7 @@ export default class CommServer {
   }
 
   private initControllers() {
-    let controllers = [new DataController()];
+    let controllers = [new MarcsController()];
     controllers.forEach(controller => {
       this.app.use("/api", controller.router);
     });

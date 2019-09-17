@@ -5,7 +5,8 @@ export enum OpType {
 export enum Events {
   SERVER_TEXT_UPDATE = "server_text_update",
   CLIENT_TEXT_UPDATE = "client_text_update",
-  CARET_POSITION_CHANGE = "caret_position_change"
+  CARET_POSITION_CHANGE = "caret_position_change",
+  CLIENT_JOIN_MARC = "client_join_marc"
 }
 export enum IEquality {
   LESSER = -1,
@@ -27,7 +28,21 @@ export interface IComparisonResult {
   equality: IEquality;
   // uidTieBreak: number;
 }
+
 export interface ICaretEventData {
+  marcId: string;
   userId: string;
   caret: { height: number; left: number; top: number };
+}
+export interface IChangeEventData {
+  marcId: string;
+  opSequence: ICharOpSequence;
+}
+export interface IClientJoinData {
+  marcId: string;
+}
+
+export interface IMarc {
+  id: string;
+  //owner:
 }
