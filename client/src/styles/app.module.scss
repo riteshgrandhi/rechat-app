@@ -8,10 +8,16 @@ body {
 }
 
 .app {
-  width: 100vw;
+  // width: 100vw;
   height: 100vh;
   display: flex;
-  color: #b4b4b4;
+  color: #707070;
+}
+
+.homePage {
+  width: 100%;
+  display: flex;
+  justify-content: center;
 }
 
 .infoPanel {
@@ -21,19 +27,59 @@ body {
   flex-direction: column;
   background-color: #272727;
   .documentInfo {
-    padding: 5%;
+    // padding: 3% 5%;
     height: 40%;
+    .open {
+      display: block;
+    }
+    .closed {
+      display: none;
+    }
   }
+
   .personaInfo {
-    padding: 5%;
     height: 60%;
   }
+
   .title {
-    text-align: center;
+    float: left;
+    text-align: left;
+    font-weight: 600;
+    font-size: 1.2em;
   }
+
+  .chevronCollapse {
+    padding: 3px;
+    float: right;
+  }
+
+  .menuItem {
+    padding: 10px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    padding-left: 20px;
+    &:hover {
+      background-color: #444444;
+      color: #cccccc;
+    }
+    &.main {
+      justify-content: space-between;
+      padding-left: 10px;
+    }
+    &.selected {
+      color: #41b883;
+    }
+    span {
+      padding-left: 10px;
+    }
+    transition: all 0.5s ease;
+  }
+
   hr {
     border: 1px solid #565656;
     border-radius: 1px;
+    margin: 0px;
   }
 }
 
@@ -50,6 +96,7 @@ body {
     box-shadow: inset 10px 0 20px -7px rgba(0, 0, 0, 0.3);
     border: none;
     color: #222;
+    resize: none;
     &:focus {
       outline: none;
     }

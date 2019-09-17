@@ -43,6 +43,7 @@ export interface IClientJoinData {
 }
 
 export interface IMarc {
+  title: string;
   id: string;
   //owner:
 }

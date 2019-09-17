@@ -6,15 +6,51 @@ import { Router, Redirect } from "@reach/router";
 import Home from "./home/Home";
 import Editor from "./editor/Editor";
 import ErrorPage from "./other/ErrorPage";
+import { IMarc } from "@common";
+import { SideBar } from "./home/SideBar";
 
-class App extends React.Component {
+import styles from "./styles/app.module.scss";
+
+interface IIndexProps {}
+interface IIndexState {
+  marcs: IMarc[];
+}
+
+class App extends React.Component<IIndexProps, IIndexState> {
+  /**
+   *
+   */
+  constructor(props: IIndexProps) {
+    super(props);
+    this.getMarcs = this.getMarcs.bind(this);
+    this.state = {
+      marcs: []
+    };
+  }
+
+  public componentDidMount() {
+    this.getMarcs().then(resp => {
+      console.log(resp);
+      this.setState({ marcs: resp.data });
+    });
+  }
+
+  private async getMarcs() {
+    try {
+      return await fetch("/api/marcs").then(res => res.json());
+    } catch (ex) {
+      throw `Failed to fetch: ${ex}`;
+    }
+  }
+
   render() {
     return (
-      <div>
-        <Router>
+      <div className={styles.app}>
+        <SideBar marcs={this.state.marcs} />
+        <Router style={{ width: "100%" }}>
           <Home path="/" />
-          <Editor path="/edit/:marcId"/>
-          <ErrorPage path= "/error"/>
+          <Editor path="/edit/:marcId" />
+          <ErrorPage path="/error" />
           <Redirect default noThrow from="*" to="/" />
         </Router>
       </div>

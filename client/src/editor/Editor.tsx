@@ -1,7 +1,6 @@
 import React, { Fragment } from "react";
 import io from "socket.io-client";
-import styles from "./app.module.scss";
-import { InfoPanel } from "./InfoPanel";
+import styles from "../styles/app.module.scss";
 import { RouteComponentProps, navigate } from "@reach/router";
 // import { Events, OpType, ICharOpSequence, CFRString } from "remarc-app-common";
 import {
@@ -39,7 +38,7 @@ class Editor extends React.Component<IEditorProps, IEditorState> {
     this.state = {
       document: "",
       floatingCarets: [],
-      marc: { id: "" },
+      marc: { id: "", title: "" },
       isLoading: true
     };
 
@@ -302,14 +301,14 @@ class Editor extends React.Component<IEditorProps, IEditorState> {
 
   private addCaretListeners() {
     this.textareaElem.addEventListener("keypress", this.checkCaret); // Every character written
-    this.textareaElem.addEventListener("mousedown", this.checkCaret); // Click down
-    this.textareaElem.addEventListener("touchstart", this.checkCaret); // Mobile
+    // this.textareaElem.addEventListener("mousedown", this.checkCaret); // Click down
+    // this.textareaElem.addEventListener("touchstart", this.checkCaret); // Mobile
     this.textareaElem.addEventListener("input", this.checkCaret); // Other input events
     this.textareaElem.addEventListener("paste", this.checkCaret); // Clipboard actions
     this.textareaElem.addEventListener("cut", this.checkCaret);
-    this.textareaElem.addEventListener("mousemove", this.checkCaret); // Selection, dragging text
-    this.textareaElem.addEventListener("select", this.checkCaret); // Some browsers support this event
-    this.textareaElem.addEventListener("selectstart", this.checkCaret); // Some browsers support this event
+    // this.textareaElem.addEventListener("mousemove", this.checkCaret); // Selection, dragging text
+    // this.textareaElem.addEventListener("select", this.checkCaret); // Some browsers support this event
+    // this.textareaElem.addEventListener("selectstart", this.checkCaret); // Some browsers support this event
   }
 
   render() {
@@ -317,7 +316,6 @@ class Editor extends React.Component<IEditorProps, IEditorState> {
       <Fragment>
         {!this.state.isLoading && (
           <div className={styles.app}>
-            <InfoPanel />
             <div className={styles.editor}>
               {this.state.floatingCarets.map(userCaret => (
                 <span
