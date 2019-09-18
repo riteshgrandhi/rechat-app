@@ -1,36 +1,28 @@
 import { Router, Request, Response } from "express";
-import { IMarc } from "@common";
-
-const _marcs: IMarc[] = [
-  {
-    id: "mydoc",
-    title:"My Document"
-  },
-  {
-    id: "readme",
-    title: "Read Me Document"
-  }
-];
+import MarcsService from "../services/MarcsService";
 
 export default class MarcsController {
   public path = "/marcs";
   public router: Router = Router();
+  private marcsService: MarcsService;
 
-  constructor() {
+  constructor(marcsService: MarcsService) {
+    this.marcsService = marcsService;
     this.initRoutes();
-    // this.getMarcs = this.getMarcs.bind(this);
-    // this.getMarcById = this.getMarcById.bind(this);
   }
 
   private initRoutes() {
-    this.router.get(this.path, this.getMarcs);
-    this.router.get(`${this.path}/:id`, this.getMarcById);
+    this.router.get(this.path, (req, resp) => {
+      this.getMarcs(req, resp);
+    });
+    this.router.get(`${this.path}/:id`, (req, resp) => {
+      this.getMarcById(req, resp);
+    });
   }
 
   private getMarcs(req: Request, resp: Response) {
     try {
-      console.log(_marcs);
-      return resp.send({ data: _marcs });
+      return resp.send({ data: this.marcsService.getMarcs() });
     } catch (ex) {
       return resp.status(500);
     }
@@ -38,15 +30,13 @@ export default class MarcsController {
 
   private getMarcById(req: Request, resp: Response) {
     try {
-      var index = _marcs.findIndex(m => {
-        return req.params.id ? m.id == req.params.id : false;
-      });
-      if (index < 0) {
+      var marc = this.marcsService.getMarcById(req.params.id);
+      if (marc == null) {
         return resp
           .send({ error: "Marc with given Id not found!" })
           .status(404);
       }
-      return resp.send({ data: _marcs[index] });
+      return resp.send({ data: marc });
     } catch (ex) {
       return resp.status(500);
     }

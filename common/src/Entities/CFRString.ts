@@ -10,8 +10,8 @@ import {
 export class CFRString {
   private _cfrString: ICFRCharacter[];
 
-  constructor() {
-    this._cfrString = [];
+  constructor(cfrCharList?: ICFRCharacter[]) {
+    this._cfrString = cfrCharList || [];
     let t: number = 0;
   }
 

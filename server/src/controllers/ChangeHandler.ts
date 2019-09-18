@@ -4,12 +4,15 @@ import {
   ICaretEventData,
   IClientJoinData
 } from "remarc-app-common";
+import MarcsService from "../services/MarcsService";
 
 export default class ChangeHandler {
   private io: SocketIO.Server;
+  private marcsService: MarcsService;
 
-  constructor(io: SocketIO.Server) {
+  constructor(io: SocketIO.Server, marcsService: MarcsService) {
     this.onConnection = this.onConnection.bind(this);
+    this.marcsService = marcsService;
     this.io = io;
   }
 
@@ -38,10 +41,14 @@ export default class ChangeHandler {
     });
 
     socket.on(Events.CLIENT_TEXT_UPDATE, (data: IChangeEventData) => {
-      console.log(`recieveing ${data}`);
-      // setTimeout(() => {
-      socket.to("room_" + data.marcId).emit(Events.SERVER_TEXT_UPDATE, data);
-      // }, 5000);
+      console.log(`recieveing ${Events.CLIENT_TEXT_UPDATE}`);
+      try {
+        this.marcsService.updateMarc(data);
+        socket.to("room_" + data.marcId).emit(Events.SERVER_TEXT_UPDATE, data);
+      } catch (ex) {
+        console.log(`failed at ${Events.CLIENT_TEXT_UPDATE}`);
+        console.log(ex);
+      }
     });
 
     socket.on(Events.CARET_POSITION_CHANGE, (data: ICaretEventData) => {

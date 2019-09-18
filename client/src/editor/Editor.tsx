@@ -17,7 +17,7 @@ import getCaretCoordinates from "textarea-caret";
 
 interface IEditorState {
   document: string;
-  marc: IMarc;
+  // marc: IMarc;
   floatingCarets: ICaretEventData[];
   isLoading: boolean;
 }
@@ -35,12 +35,6 @@ class Editor extends React.Component<IEditorProps, IEditorState> {
 
     this.textareaElem = {} as HTMLTextAreaElement;
     this.caretPosition = 0;
-    this.state = {
-      document: "",
-      floatingCarets: [],
-      marc: { id: "", title: "" },
-      isLoading: true
-    };
 
     this.checkCaret = this.checkCaret.bind(this);
     this.addCaretListeners = this.addCaretListeners.bind(this);
@@ -48,19 +42,32 @@ class Editor extends React.Component<IEditorProps, IEditorState> {
     this.updateUserCarets = this.updateUserCarets.bind(this);
     this.onKeyDown = this.onKeyDown.bind(this);
     this.onPaste = this.onPaste.bind(this);
-    // this.socket = io({ transports: ["websocket"], upgrade: false });
-    // this.socket = io();
     this.socket = {} as SocketIOClient.Socket;
     this.CFRDocument = new CFRString();
+    this.state = {
+      document: "",
+      floatingCarets: [],
+      isLoading: true
+    };
+  }
+
+  componentDidMount() {
     if (!this.props.marcId) {
       throw "Id Cannot be null";
     }
     this.getMarcById(this.props.marcId)
       .then((_marc: IMarc) => {
-        this.setState({ marc: _marc, isLoading: false }, () => {
-          this.socket = io();
-          this.initSocketListeners();
-        });
+        this.CFRDocument = new CFRString(_marc.document);
+        this.setState(
+          { isLoading: false, document: this.CFRDocument.getText() },
+          () => {
+            if (this.textareaElem) {
+              this.textareaElem.selectionStart = this.state.document.length;
+            }
+            this.socket = io();
+            this.initSocketListeners();
+          }
+        );
       })
       .catch(err => {
         navigate("/error", {
