@@ -1,8 +1,10 @@
 import express, { Application } from "express";
-import MarcsController from "./controllers/MarcsController";
+import cors from "cors";
 import socketio from "socket.io";
+import MarcsController from "./controllers/MarcsController";
 import ChangeHandler from "./controllers/ChangeHandler";
 import MarcsService from "./services/MarcsService";
+import { Config } from "./config/appConfig";
 
 export default class CommServer {
   private app: Application;
@@ -18,6 +20,7 @@ export default class CommServer {
   }
 
   private initMiddleware() {
+    this.app.use(cors({ origin: Config.clientUrl, optionsSuccessStatus: 200 }));
     this.app.use(express.json());
   }
 
@@ -33,7 +36,10 @@ export default class CommServer {
       console.log(`Listening on port ${this.port}...`);
     });
 
-    const io = socketio(server);
+    const io = socketio(server, {
+      path: "/socket.io",
+      transports: ["websocket"]
+    });
     const chatHandler = new ChangeHandler(io, this.marcsService);
     chatHandler.init();
   }

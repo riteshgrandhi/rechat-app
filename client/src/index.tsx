@@ -10,6 +10,7 @@ import { IMarc } from "@common";
 import { SideBar } from "./home/SideBar";
 
 import styles from "./styles/app.module.scss";
+import { Config } from "./config/appConfig";
 
 interface IIndexProps {}
 interface IIndexState {
@@ -37,7 +38,9 @@ class App extends React.Component<IIndexProps, IIndexState> {
 
   private async getMarcs() {
     try {
-      return await fetch("/api/marcs").then(res => res.json());
+      return await fetch(`${Config.serverUrl}/api/marcs`).then(res =>
+        res.json()
+      );
     } catch (ex) {
       throw `Failed to fetch: ${ex}`;
     }

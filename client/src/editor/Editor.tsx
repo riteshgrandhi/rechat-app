@@ -2,6 +2,7 @@ import React, { Fragment } from "react";
 import io from "socket.io-client";
 import styles from "../styles/app.module.scss";
 import { RouteComponentProps, navigate } from "@reach/router";
+import { Config } from "./../config/appConfig";
 // import { Events, OpType, ICharOpSequence, CFRString } from "remarc-app-common";
 import {
   ICharOpSequence,
@@ -43,7 +44,7 @@ class Editor extends React.Component<IEditorProps, IEditorState> {
     this.onKeyDown = this.onKeyDown.bind(this);
     this.onPaste = this.onPaste.bind(this);
     this.socket = {} as SocketIOClient.Socket;
-    this.CFRDocument = new CFRString();
+    this.CFRDocument = {} as CFRString;
     this.state = {
       document: "",
       floatingCarets: [],
@@ -64,7 +65,9 @@ class Editor extends React.Component<IEditorProps, IEditorState> {
             if (this.textareaElem) {
               this.textareaElem.selectionStart = this.state.document.length;
             }
-            this.socket = io();
+            this.socket = io(Config.serverUrl, {
+              transports: ["websocket"]
+            });
             this.initSocketListeners();
           }
         );
@@ -106,7 +109,7 @@ class Editor extends React.Component<IEditorProps, IEditorState> {
   private async getMarcById(marcId: string): Promise<IMarc> {
     try {
       let res: { data: IMarc; error?: any } = await fetch(
-        `/api/marcs/${marcId}`
+        `${Config.serverUrl}/api/marcs/${marcId}`
       ).then(res => res.json());
       if (res.error) {
         throw res;
