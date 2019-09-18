@@ -62,7 +62,7 @@ export class CFRString {
 
   public applyOpSequence(
     opSequence: ICharOpSequence,
-    currentSelection: { start: number; end: number }
+    currentSelection?: { start: number; end: number }
   ) {
     opSequence.forEach(op => {
       switch (op.type) {
@@ -103,7 +103,7 @@ export class CFRString {
 
   private remoteRemove(
     char: ICFRCharacter,
-    currentSelection: { start: number; end: number }
+    currentSelection?: { start: number; end: number }
   ) {
     // find the index to remove
     let index: number = this.findIndexToRemove(char);
@@ -111,11 +111,13 @@ export class CFRString {
       console.log("Error");
       return;
     }
-    if (index <= currentSelection.start) {
-      currentSelection.start -= 1;
-    }
-    if (index <= currentSelection.end) {
-      currentSelection.end -= 1;
+    if (currentSelection) {
+      if (index <= currentSelection.start) {
+        currentSelection.start -= 1;
+      }
+      if (index <= currentSelection.end) {
+        currentSelection.end -= 1;
+      }
     }
     this._cfrString.splice(index, 1);
   }

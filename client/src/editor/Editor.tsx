@@ -1,7 +1,6 @@
 import React, { Fragment } from "react";
 import io from "socket.io-client";
-import styles from "./app.module.scss";
-import { InfoPanel } from "./InfoPanel";
+import styles from "../styles/app.module.scss";
 import { RouteComponentProps, navigate } from "@reach/router";
 // import { Events, OpType, ICharOpSequence, CFRString } from "remarc-app-common";
 import {
@@ -39,7 +38,7 @@ class Editor extends React.Component<IEditorProps, IEditorState> {
     this.state = {
       document: "",
       floatingCarets: [],
-      marc: { id: "" },
+      marc: { id: "", title: "" },
       isLoading: true
     };
 
@@ -49,7 +48,9 @@ class Editor extends React.Component<IEditorProps, IEditorState> {
     this.updateUserCarets = this.updateUserCarets.bind(this);
     this.onKeyDown = this.onKeyDown.bind(this);
     this.onPaste = this.onPaste.bind(this);
-    this.socket = io();
+    // this.socket = io({ transports: ["websocket"], upgrade: false });
+    // this.socket = io();
+    this.socket = {} as SocketIOClient.Socket;
     this.CFRDocument = new CFRString();
     if (!this.props.marcId) {
       throw "Id Cannot be null";
@@ -57,6 +58,7 @@ class Editor extends React.Component<IEditorProps, IEditorState> {
     this.getMarcById(this.props.marcId)
       .then((_marc: IMarc) => {
         this.setState({ marc: _marc, isLoading: false }, () => {
+          this.socket = io();
           this.initSocketListeners();
         });
       })
@@ -68,6 +70,13 @@ class Editor extends React.Component<IEditorProps, IEditorState> {
           }
         });
       });
+  }
+
+  componentWillUnmount() {
+    console.log("disconnecting..");
+    if (this.socket.close) {
+      this.socket.close();
+    }
   }
 
   private initSocketListeners() {
@@ -105,16 +114,31 @@ class Editor extends React.Component<IEditorProps, IEditorState> {
   private onServerTextUpdate(data: IChangeEventData) {
     let opSequence: ICharOpSequence = data.opSequence;
     console.log(opSequence);
-    let currentSelection = {
-      start: this.textareaElem.selectionStart,
-      end: this.textareaElem.selectionStart
-    };
+    let currentSelection:
+      | {
+          start: number;
+          end: number;
+        }
+      | undefined;
+
+    if (this.textareaElem) {
+      currentSelection = {
+        start: this.textareaElem.selectionStart,
+        end: this.textareaElem.selectionStart
+      };
+    }
+
     this.CFRDocument.applyOpSequence(opSequence, currentSelection);
     this.CFRDocument.print();
-    this.setState({ document: this.CFRDocument.getText() }, () => {
-      this.textareaElem.selectionStart = currentSelection.start;
-      this.textareaElem.selectionEnd = currentSelection.end;
-    });
+
+    if (this.textareaElem) {
+      this.setState({ document: this.CFRDocument.getText() }, () => {
+        if (currentSelection) {
+          this.textareaElem.selectionStart = currentSelection.start;
+          this.textareaElem.selectionEnd = currentSelection.end;
+        }
+      });
+    }
   }
 
   private onKeyDown(e: React.KeyboardEvent) {
@@ -302,14 +326,14 @@ class Editor extends React.Component<IEditorProps, IEditorState> {
 
   private addCaretListeners() {
     this.textareaElem.addEventListener("keypress", this.checkCaret); // Every character written
-    this.textareaElem.addEventListener("mousedown", this.checkCaret); // Click down
-    this.textareaElem.addEventListener("touchstart", this.checkCaret); // Mobile
+    // this.textareaElem.addEventListener("mousedown", this.checkCaret); // Click down
+    // this.textareaElem.addEventListener("touchstart", this.checkCaret); // Mobile
     this.textareaElem.addEventListener("input", this.checkCaret); // Other input events
     this.textareaElem.addEventListener("paste", this.checkCaret); // Clipboard actions
     this.textareaElem.addEventListener("cut", this.checkCaret);
-    this.textareaElem.addEventListener("mousemove", this.checkCaret); // Selection, dragging text
-    this.textareaElem.addEventListener("select", this.checkCaret); // Some browsers support this event
-    this.textareaElem.addEventListener("selectstart", this.checkCaret); // Some browsers support this event
+    // this.textareaElem.addEventListener("mousemove", this.checkCaret); // Selection, dragging text
+    // this.textareaElem.addEventListener("select", this.checkCaret); // Some browsers support this event
+    // this.textareaElem.addEventListener("selectstart", this.checkCaret); // Some browsers support this event
   }
 
   render() {
@@ -317,7 +341,6 @@ class Editor extends React.Component<IEditorProps, IEditorState> {
       <Fragment>
         {!this.state.isLoading && (
           <div className={styles.app}>
-            <InfoPanel />
             <div className={styles.editor}>
               {this.state.floatingCarets.map(userCaret => (
                 <span
@@ -341,8 +364,12 @@ class Editor extends React.Component<IEditorProps, IEditorState> {
                   this.textareaElem = e;
                   if (this.textareaElem) {
                     this.addCaretListeners();
+                    if (document.activeElement != this.textareaElem) {
+                      this.textareaElem.focus();
+                    }
                   }
                 }}
+                autoFocus
               />
             </div>
           </div>

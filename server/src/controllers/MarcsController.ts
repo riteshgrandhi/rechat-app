@@ -3,10 +3,12 @@ import { IMarc } from "@common";
 
 const _marcs: IMarc[] = [
   {
-    id: "mydoc"
+    id: "mydoc",
+    title:"My Document"
   },
   {
-    id: "this-is-doc"
+    id: "readme",
+    title: "Read Me Document"
   }
 ];
 

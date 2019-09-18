@@ -1,0 +1,108 @@
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen",
+    "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue",
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.app {
+  // width: 100vw;
+  height: 100vh;
+  display: flex;
+  color: #707070;
+}
+
+.routeContainer {
+  width: 100%;
+}
+
+.homePage {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+.infoPanel {
+  width: 20vw;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background-color: #272727;
+  .marcList {
+    // padding: 3% 5%;
+    height: 70%;
+    .open {
+      display: block;
+    }
+    .closed {
+      display: none;
+    }
+  }
+
+  .marcInfo {
+    height: 30%;
+  }
+
+  .title {
+    float: left;
+    text-align: left;
+    font-weight: 600;
+    font-size: 1.2em;
+  }
+
+  .chevronCollapse {
+    padding: 3px;
+    float: right;
+  }
+
+  .menuItem {
+    padding: 10px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    padding-left: 20px;
+    &:hover {
+      background-color: #444444;
+      color: #cccccc;
+    }
+    &.main {
+      justify-content: space-between;
+      padding-left: 10px;
+    }
+    &.selected {
+      color: #41b883;
+    }
+    span {
+      padding-left: 10px;
+    }
+    transition: all 0.5s ease;
+  }
+
+  hr {
+    border: .5px solid #565656;
+    border-radius: 1px;
+    margin: 0px;
+  }
+}
+
+.editor {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  .textarea {
+    font-size: 1.3em;
+    width: 100%;
+    background-color: #fff;
+    padding: 1%;
+    background: linear-gradient(to right, #efefef 0, #ffffff 20px, #fff 100%);
+    box-shadow: inset 10px 0 20px -7px rgba(0, 0, 0, 0.3);
+    border: none;
+    color: #222;
+    resize: none;
+    &:focus {
+      outline: none;
+    }
+  }
+}
