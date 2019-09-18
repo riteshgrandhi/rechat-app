@@ -18,7 +18,7 @@ export default class ChangeHandler {
   }
 
   private onConnection(socket: SocketIO.Socket) {
-    console.log("New Connection Estabished!" + socket.id);
+    console.log("New Connection: " + socket.id);
 
     // this.io.sockets.emit("new_notification", {
     //   message: `You are connected!`
@@ -27,8 +27,14 @@ export default class ChangeHandler {
     // socket.join()
 
     socket.on(Events.CLIENT_JOIN_MARC, (data: IClientJoinData) => {
+      socket.leaveAll();
       socket.join("room_" + data.marcId);
-      console.log(socket.adapter.rooms);
+      console.log("---------------------------");
+      for (let room in socket.adapter.rooms) {
+        console.log("Room:" + room);
+        console.log(socket.adapter.rooms[room].sockets);
+      }
+      console.log("---------------------------");
     });
 
     socket.on(Events.CLIENT_TEXT_UPDATE, (data: IChangeEventData) => {

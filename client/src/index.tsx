@@ -1,7 +1,7 @@
-import React from "react";
+import React, { Fragment } from "react";
 import ReactDOM from "react-dom";
 import * as serviceWorker from "./serviceWorker";
-import { Router, Redirect } from "@reach/router";
+import { Router, Redirect, Location } from "@reach/router";
 
 import Home from "./home/Home";
 import Editor from "./editor/Editor";
@@ -46,13 +46,22 @@ class App extends React.Component<IIndexProps, IIndexState> {
   render() {
     return (
       <div className={styles.app}>
-        <SideBar marcs={this.state.marcs} />
-        <Router style={{ width: "100%" }}>
-          <Home path="/" />
-          <Editor path="/edit/:marcId" />
-          <ErrorPage path="/error" />
-          <Redirect default noThrow from="*" to="/" />
-        </Router>
+        <Location>
+          {({ location }) => (
+            <Fragment>
+              <SideBar
+                marcs={this.state.marcs}
+                currentMarcId={location.pathname.split("/edit/")[1]}
+              />
+              <Router style={{ width: "100%" }}>
+                <Home path="/" />
+                <Editor path="/edit/:marcId" key={location.pathname} />
+                <ErrorPage path="/error" />
+                <Redirect default noThrow from="*" to="/" />
+              </Router>
+            </Fragment>
+          )}
+        </Location>
       </div>
     );
   }

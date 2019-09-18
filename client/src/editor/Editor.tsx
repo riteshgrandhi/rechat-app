@@ -48,7 +48,9 @@ class Editor extends React.Component<IEditorProps, IEditorState> {
     this.updateUserCarets = this.updateUserCarets.bind(this);
     this.onKeyDown = this.onKeyDown.bind(this);
     this.onPaste = this.onPaste.bind(this);
-    this.socket = io();
+    // this.socket = io({ transports: ["websocket"], upgrade: false });
+    // this.socket = io();
+    this.socket = {} as SocketIOClient.Socket;
     this.CFRDocument = new CFRString();
     if (!this.props.marcId) {
       throw "Id Cannot be null";
@@ -56,6 +58,7 @@ class Editor extends React.Component<IEditorProps, IEditorState> {
     this.getMarcById(this.props.marcId)
       .then((_marc: IMarc) => {
         this.setState({ marc: _marc, isLoading: false }, () => {
+          this.socket = io();
           this.initSocketListeners();
         });
       })
@@ -67,6 +70,13 @@ class Editor extends React.Component<IEditorProps, IEditorState> {
           }
         });
       });
+  }
+
+  componentWillUnmount() {
+    console.log("disconnecting..");
+    if (this.socket.close) {
+      this.socket.close();
+    }
   }
 
   private initSocketListeners() {
@@ -104,16 +114,31 @@ class Editor extends React.Component<IEditorProps, IEditorState> {
   private onServerTextUpdate(data: IChangeEventData) {
     let opSequence: ICharOpSequence = data.opSequence;
     console.log(opSequence);
-    let currentSelection = {
-      start: this.textareaElem.selectionStart,
-      end: this.textareaElem.selectionStart
-    };
+    let currentSelection:
+      | {
+          start: number;
+          end: number;
+        }
+      | undefined;
+
+    if (this.textareaElem) {
+      currentSelection = {
+        start: this.textareaElem.selectionStart,
+        end: this.textareaElem.selectionStart
+      };
+    }
+
     this.CFRDocument.applyOpSequence(opSequence, currentSelection);
     this.CFRDocument.print();
-    this.setState({ document: this.CFRDocument.getText() }, () => {
-      this.textareaElem.selectionStart = currentSelection.start;
-      this.textareaElem.selectionEnd = currentSelection.end;
-    });
+
+    if (this.textareaElem) {
+      this.setState({ document: this.CFRDocument.getText() }, () => {
+        if (currentSelection) {
+          this.textareaElem.selectionStart = currentSelection.start;
+          this.textareaElem.selectionEnd = currentSelection.end;
+        }
+      });
+    }
   }
 
   private onKeyDown(e: React.KeyboardEvent) {
@@ -339,8 +364,12 @@ class Editor extends React.Component<IEditorProps, IEditorState> {
                   this.textareaElem = e;
                   if (this.textareaElem) {
                     this.addCaretListeners();
+                    if (document.activeElement != this.textareaElem) {
+                      this.textareaElem.focus();
+                    }
                   }
                 }}
+                autoFocus
               />
             </div>
           </div>

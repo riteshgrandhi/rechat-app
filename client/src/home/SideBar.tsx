@@ -6,6 +6,7 @@ import { navigate } from "@reach/router";
 
 interface ISideBarProps {
   marcs: IMarc[];
+  currentMarcId?: string;
 }
 
 interface ISideBarState {
@@ -31,11 +32,14 @@ export class SideBar extends React.Component<ISideBarProps, ISideBarState> {
   render() {
     return (
       <div className={styles.infoPanel}>
-        {/* <div className={styles.personaInfo}>
-          <div className={styles.title}>Peers</div>
+        <div className={styles.marcInfo}>
+          <div className={styles.title}></div>
         </div> 
-        <hr />*/}
-        <CollapseMenu marcs={this.state.marcs} />
+        <hr />
+        <CollapseMenu
+          marcs={this.state.marcs}
+          selectedId={this.props.currentMarcId || ""}
+        />
       </div>
     );
   }
@@ -43,6 +47,7 @@ export class SideBar extends React.Component<ISideBarProps, ISideBarState> {
 
 interface ICollapseMenuProps {
   marcs: IMarc[];
+  selectedId: string;
 }
 interface ICollapseMenuState {
   isOpen: boolean;
@@ -59,23 +64,23 @@ class CollapseMenu extends React.Component<
     this.state = {
       isOpen: true,
       marcs: this.props.marcs,
-      selectedId: ""
+      selectedId: this.props.selectedId
     };
     this.toggleMenu = this.toggleMenu.bind(this);
   }
 
-  public componentDidUpdate(prevProps: ICollapseMenuProps) {
-    if (prevProps.marcs != this.props.marcs) {
-      let _s: string = window.location.pathname.split("/edit/").join("");
-      if (this.props.marcs.findIndex(m => m.id == _s) < 0) {
-        _s = "";
-      }
-      this.setState({
-        marcs: this.props.marcs,
-        selectedId: _s
-      });
-    }
-  }
+  // public componentDidUpdate(prevProps: ICollapseMenuProps) {
+  //   if (prevProps.marcs != this.props.marcs) {
+  //     let _s: string = window.location.pathname.split("/edit/").join("");
+  //     if (this.props.marcs.findIndex(m => m.id == _s) < 0) {
+  //       _s = "";
+  //     }
+  //     this.setState({
+  //       marcs: this.props.marcs,
+  //       selectedId: _s
+  //     });
+  //   }
+  // }
 
   private toggleMenu(event: React.MouseEvent) {
     let _flag = this.state.isOpen;
@@ -87,7 +92,7 @@ class CollapseMenu extends React.Component<
 
   render() {
     return (
-      <div className={styles.documentInfo}>
+      <div className={styles.marcList}>
         <div
           onClick={this.toggleMenu}
           className={`${styles.menuItem} ${styles.main}`}
