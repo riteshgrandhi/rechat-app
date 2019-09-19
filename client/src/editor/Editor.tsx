@@ -10,21 +10,24 @@ import {
   ICaretEventData,
   IClientJoinData,
   IChangeEventData,
-  IMarc
+  IMarc,
+  Logger,
+  LogLevel
 } from "@common";
 import { Key } from "ts-keycode-enum";
 import getCaretCoordinates from "textarea-caret";
 
 interface IEditorState {
   document: string;
-  // marc: IMarc;
   floatingCarets: ICaretEventData[];
   isLoading: boolean;
 }
 
-interface IEditorProps extends RouteComponentProps<{ marcId: string }> {}
+interface IEditorProps
+  extends RouteComponentProps<{ marcId: string; logger: Logger }> {}
 
 class Editor extends React.Component<IEditorProps, IEditorState> {
+  private logger: Logger;
   private socket: SocketIOClient.Socket;
   private CFRDocument: CFRString;
   private textareaElem: HTMLTextAreaElement;
@@ -36,6 +39,8 @@ class Editor extends React.Component<IEditorProps, IEditorState> {
     this.textareaElem = {} as HTMLTextAreaElement;
     this.caretPosition = 0;
 
+    let _level: LogLevel = LogLevel[Config.logLevel as keyof typeof LogLevel];
+    this.logger = this.props.logger || new Logger(_level);
     this.checkCaret = this.checkCaret.bind(this);
     this.addCaretListeners = this.addCaretListeners.bind(this);
     this.onServerTextUpdate = this.onServerTextUpdate.bind(this);
@@ -58,7 +63,7 @@ class Editor extends React.Component<IEditorProps, IEditorState> {
     }
     this.getMarcById(this.props.marcId)
       .then((_marc: IMarc) => {
-        this.CFRDocument = new CFRString(_marc.document);
+        this.CFRDocument = new CFRString(this.logger, _marc.document);
         this.setState(
           { isLoading: false, document: this.CFRDocument.getText() },
           () => {
@@ -83,7 +88,7 @@ class Editor extends React.Component<IEditorProps, IEditorState> {
   }
 
   componentWillUnmount() {
-    console.log("disconnecting..");
+    this.logger.log(Editor.name, "Disconnecting..", LogLevel.VERBOSE);
     if (this.socket.close) {
       this.socket.close();
     }
@@ -94,7 +99,7 @@ class Editor extends React.Component<IEditorProps, IEditorState> {
       throw "Id Cannot be null";
     }
     this.socket.on("connect", (data: any) => {
-      console.log(data);
+      this.logger.log(Editor.name, "Connected", LogLevel.VERBOSE, data);
     });
 
     this.socket.on(Events.SERVER_TEXT_UPDATE, this.onServerTextUpdate);
@@ -116,14 +121,19 @@ class Editor extends React.Component<IEditorProps, IEditorState> {
       }
       return res.data;
     } catch (ex) {
-      console.log("Failed to Fetch");
+      this.logger.log(Editor.name, "Failed to fetch", LogLevel.ERROR, ex);
       throw ex;
     }
   }
 
   private onServerTextUpdate(data: IChangeEventData) {
     let opSequence: ICharOpSequence = data.opSequence;
-    console.log(opSequence);
+    this.logger.log(
+      Editor.name,
+      Events.SERVER_TEXT_UPDATE,
+      LogLevel.VERBOSE,
+      opSequence
+    );
     let currentSelection:
       | {
           start: number;
@@ -248,7 +258,6 @@ class Editor extends React.Component<IEditorProps, IEditorState> {
       }
       this.CFRDocument.print();
       opSequence = deleteOpSequence.concat(insertOpSequence);
-      console.log(opSequence);
       this.sendOperationList(opSequence);
     }
   }
@@ -283,7 +292,6 @@ class Editor extends React.Component<IEditorProps, IEditorState> {
 
     this.CFRDocument.print();
     opSequence = deleteOpSequence.concat(insertOpSequence);
-    console.log(opSequence);
     this.sendOperationList(opSequence);
   }
 
@@ -307,7 +315,6 @@ class Editor extends React.Component<IEditorProps, IEditorState> {
     });
 
     this.CFRDocument.print();
-    console.log(opSequence);
     this.sendOperationList(opSequence);
   }
 
@@ -315,6 +322,12 @@ class Editor extends React.Component<IEditorProps, IEditorState> {
     if (!this.props.marcId) {
       throw "Id Cannot be null";
     }
+    this.logger.log(
+      Editor.name,
+      `Sending ${Events.CLIENT_TEXT_UPDATE}`,
+      LogLevel.VERBOSE,
+      opSequence
+    );
     let data: IChangeEventData = {
       opSequence: opSequence,
       marcId: this.props.marcId
@@ -352,8 +365,12 @@ class Editor extends React.Component<IEditorProps, IEditorState> {
         userId: this.socket.id,
         caret: caretCoordinates
       };
-      console.log("Caret change to " + newPos);
-      console.log(caretCoordinates);
+      this.logger.log(
+        Editor.name,
+        `Caret change to ${newPos}`,
+        LogLevel.VERBOSE,
+        caretCoordinates
+      );
       this.socket.emit(Events.CARET_POSITION_CHANGE, data);
     }
   }

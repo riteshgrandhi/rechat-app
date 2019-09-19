@@ -1,6 +1,7 @@
-import { IMarc, CFRString, IChangeEventData } from "remarc-app-common";
+import { IMarc, CFRString, IChangeEventData, Logger } from "remarc-app-common";
 
 export default class MarcsService {
+  private logger: Logger;
   private marcs: IMarc[] = [
     {
       id: "mydoc",
@@ -16,10 +17,11 @@ export default class MarcsService {
 
   private documents: { [marcId: string]: CFRString };
 
-  constructor() {
+  constructor(logger: Logger) {
+    this.logger = logger;
     this.documents = {};
     this.marcs.forEach(m => {
-      this.documents[m.id] = new CFRString(m.document);
+      this.documents[m.id] = new CFRString(this.logger, m.document);
     });
   }
 

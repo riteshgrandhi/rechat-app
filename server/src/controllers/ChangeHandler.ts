@@ -2,15 +2,19 @@ import {
   Events,
   IChangeEventData,
   ICaretEventData,
-  IClientJoinData
+  IClientJoinData,
+  Logger,
+  LogLevel
 } from "remarc-app-common";
 import MarcsService from "../services/MarcsService";
 
 export default class ChangeHandler {
+  private logger: Logger;
   private io: SocketIO.Server;
   private marcsService: MarcsService;
 
-  constructor(io: SocketIO.Server, marcsService: MarcsService) {
+  constructor(io: SocketIO.Server, marcsService: MarcsService, logger: Logger) {
+    this.logger = logger;
     this.onConnection = this.onConnection.bind(this);
     this.marcsService = marcsService;
     this.io = io;
@@ -21,33 +25,41 @@ export default class ChangeHandler {
   }
 
   private onConnection(socket: SocketIO.Socket) {
-    console.log("New Connection: " + socket.id);
-
-    // this.io.sockets.emit("new_notification", {
-    //   message: `You are connected!`
-    // });
-
-    // socket.join()
+    this.logger.log(
+      ChangeHandler.name,
+      "New Connection",
+      LogLevel.VERBOSE,
+      socket.id
+    );
 
     socket.on(Events.CLIENT_JOIN_MARC, (data: IClientJoinData) => {
       socket.leaveAll();
       socket.join("room_" + data.marcId);
-      console.log("---------------------------");
-      for (let room in socket.adapter.rooms) {
-        console.log("Room:" + room);
-        console.log(socket.adapter.rooms[room].sockets);
-      }
-      console.log("---------------------------");
+
+      this.logger.log(
+        ChangeHandler.name,
+        `Rooms`,
+        LogLevel.VERBOSE,
+        socket.adapter.rooms
+      );
     });
 
     socket.on(Events.CLIENT_TEXT_UPDATE, (data: IChangeEventData) => {
-      console.log(`recieveing ${Events.CLIENT_TEXT_UPDATE}`);
+      this.logger.log(
+        ChangeHandler.name,
+        `Recieving ${Events.CLIENT_TEXT_UPDATE}`,
+        LogLevel.VERBOSE
+      );
       try {
         this.marcsService.updateMarc(data);
         socket.to("room_" + data.marcId).emit(Events.SERVER_TEXT_UPDATE, data);
       } catch (ex) {
-        console.log(`failed at ${Events.CLIENT_TEXT_UPDATE}`);
-        console.log(ex);
+        this.logger.log(
+          ChangeHandler.name,
+          `Failed ${Events.CLIENT_TEXT_UPDATE}`,
+          LogLevel.ERROR,
+          ex
+        );
       }
     });
 

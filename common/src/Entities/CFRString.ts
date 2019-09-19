@@ -6,11 +6,14 @@ import {
   IComparisonResult,
   IEquality
 } from "./Entities";
+import { Logger, LogLevel } from "../Logger/Logger";
 
 export class CFRString {
   private _cfrString: ICFRCharacter[];
+  private logger: Logger;
 
-  constructor(cfrCharList?: ICFRCharacter[]) {
+  constructor(logger: Logger, cfrCharList?: ICFRCharacter[]) {
+    this.logger = logger;
     this._cfrString = cfrCharList || [];
     let t: number = 0;
   }
@@ -41,10 +44,8 @@ export class CFRString {
 
     if (flag == IEquality.EQUAL) {
       if (id1[i] != null && id2[i] == null) {
-        // flag = id1[i].relativePos < 0 ? -1 : 1;
         flag = IEquality.GREATER;
       } else if (id1[i] == null && id2[i] != null) {
-        // flag = id2[i].relativePos < 0 ? -1 : 1;
         flag = IEquality.LESSER;
       }
     }
@@ -53,7 +54,7 @@ export class CFRString {
       flag = tieBreak;
     }
 
-    return { equality: flag /*, uidTieBreak: tieBreak*/ };
+    return { equality: flag };
   }
 
   public get() {
@@ -85,10 +86,16 @@ export class CFRString {
     // find the index to insert
     let index: number = this.findIndexToInsert(char);
     if (index < 0) {
-      console.log("Error");
+      this.logger.log(CFRString.name, "Error", LogLevel.ERROR);
       return;
     }
-    console.log("found insertion index: " + index);
+    this.logger.log(
+      CFRString.name,
+      `found insertion index`,
+      LogLevel.VERBOSE,
+      index
+    );
+
     if (currentSelection) {
       if (index <= currentSelection.start) {
         currentSelection.start += 1;
@@ -108,7 +115,7 @@ export class CFRString {
     // find the index to remove
     let index: number = this.findIndexToRemove(char);
     if (index < 0) {
-      console.log("Error");
+      this.logger.log(CFRString.name, "Error", LogLevel.ERROR);
       return;
     }
     if (currentSelection) {
@@ -163,8 +170,12 @@ export class CFRString {
       uniqueId: uIdNew
     };
     this._cfrString.splice(props.globalPos, 0, _cfrChar);
-    console.log(`inserted ${props.char} at ${props.globalPos} with id:`);
-    console.log(uIdNew);
+    this.logger.log(
+      CFRString.name,
+      `inserted ${props.char} at ${props.globalPos} with id`,
+      LogLevel.VERBOSE,
+      uIdNew
+    );
 
     return _cfrChar;
   }
@@ -224,7 +235,12 @@ export class CFRString {
       this._cfrString.length == 0 ? 0 : this._cfrString.length - 1
     );
 
-    console.log("found removal index: " + index);
+    this.logger.log(
+      CFRString.name,
+      "found removal index",
+      LogLevel.VERBOSE,
+      index
+    );
     return index;
   }
 
@@ -348,9 +364,10 @@ export class CFRString {
   }
 
   public print() {
-    console.log(this.getText());
-
-    console.log(
+    this.logger.log(
+      CFRString.name,
+      this.getText(),
+      LogLevel.VERBOSE,
       this._cfrString.map(c => {
         return c.char + "|" + c.uniqueId.map(u => u.relativePos).join();
       })

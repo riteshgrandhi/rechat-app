@@ -5,16 +5,20 @@ import MarcsController from "./controllers/MarcsController";
 import ChangeHandler from "./controllers/ChangeHandler";
 import MarcsService from "./services/MarcsService";
 import { Config } from "./config/appConfig";
+import { Logger, LogLevel } from "remarc-app-common";
 
 export default class CommServer {
   private app: Application;
   private port: number;
   private marcsService: MarcsService;
+  private logger: Logger;
 
   constructor(port: number) {
+    let _level: LogLevel = LogLevel[Config.logLevel as keyof typeof LogLevel];
+    this.logger = new Logger(_level);
     this.app = express();
     this.port = port;
-    this.marcsService = new MarcsService();
+    this.marcsService = new MarcsService(this.logger);
     this.initMiddleware();
     this.initControllers();
   }
@@ -25,7 +29,7 @@ export default class CommServer {
   }
 
   private initControllers() {
-    let controllers = [new MarcsController(this.marcsService)];
+    let controllers = [new MarcsController(this.marcsService, this.logger)];
     controllers.forEach(controller => {
       this.app.use("/api", controller.router);
     });
@@ -33,14 +37,18 @@ export default class CommServer {
 
   public start() {
     const server = this.app.listen(this.port, () => {
-      console.log(`Listening on port ${this.port}...`);
+      this.logger.log(
+        `${CommServer.name}`,
+        `Listening on port ${this.port}`,
+        LogLevel.VERBOSE
+      );
     });
 
     const io = socketio(server, {
       path: "/socket.io",
       transports: ["websocket"]
     });
-    const chatHandler = new ChangeHandler(io, this.marcsService);
+    const chatHandler = new ChangeHandler(io, this.marcsService, this.logger);
     chatHandler.init();
   }
 }

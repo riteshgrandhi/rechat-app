@@ -6,7 +6,7 @@ import { Router, Redirect, Location } from "@reach/router";
 import Home from "./home/Home";
 import Editor from "./editor/Editor";
 import ErrorPage from "./other/ErrorPage";
-import { IMarc } from "@common";
+import { IMarc, Logger, LogLevel } from "@common";
 import { SideBar } from "./home/SideBar";
 
 import styles from "./styles/app.module.scss";
@@ -17,12 +17,20 @@ interface IIndexState {
   marcs: IMarc[];
 }
 
+/**
+ * Main Application Component
+ */
 class App extends React.Component<IIndexProps, IIndexState> {
+  private logger: Logger;
+
   /**
-   *
+   * App Constructor
+   * @param props
    */
   constructor(props: IIndexProps) {
     super(props);
+    let _level: LogLevel = LogLevel[Config.logLevel as keyof typeof LogLevel];
+    this.logger = new Logger(_level);
     this.getMarcs = this.getMarcs.bind(this);
     this.state = {
       marcs: []
@@ -31,7 +39,7 @@ class App extends React.Component<IIndexProps, IIndexState> {
 
   public componentDidMount() {
     this.getMarcs().then(resp => {
-      console.log(resp);
+      this.logger.log(App.name, `Response`, LogLevel.VERBOSE, resp);
       this.setState({ marcs: resp.data });
     });
   }
@@ -58,7 +66,11 @@ class App extends React.Component<IIndexProps, IIndexState> {
               />
               <Router style={{ width: "100%" }}>
                 <Home path="/" />
-                <Editor path="/edit/:marcId" key={location.pathname} />
+                <Editor
+                  path="/edit/:marcId"
+                  key={location.pathname}
+                  logger={this.logger}
+                />
                 <ErrorPage path="/error" />
                 <Redirect default noThrow from="*" to="/" />
               </Router>

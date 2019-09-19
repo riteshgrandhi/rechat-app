@@ -1,3 +1,4 @@
 {
-  "clientUrl": ["http://localhost:3000","https://remarc.localtunnel.me"]
+  "clientUrl": ["http://localhost:3000", "https://remarc.localtunnel.me"],
+  "logLevel": "VERBOSE"
 }

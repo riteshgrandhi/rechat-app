@@ -1,12 +1,15 @@
 import { Router, Request, Response } from "express";
 import MarcsService from "../services/MarcsService";
+import { Logger } from "remarc-app-common";
 
 export default class MarcsController {
   public path = "/marcs";
   public router: Router = Router();
+  private logger: Logger;
   private marcsService: MarcsService;
 
-  constructor(marcsService: MarcsService) {
+  constructor(marcsService: MarcsService, logger: Logger) {
+    this.logger = logger;
     this.marcsService = marcsService;
     this.initRoutes();
   }
