@@ -3,7 +3,6 @@ import io from "socket.io-client";
 import styles from "../styles/app.module.scss";
 import { RouteComponentProps, navigate } from "@reach/router";
 import { Config } from "./../config/appConfig";
-// import { Events, OpType, ICharOpSequence, CFRString } from "remarc-app-common";
 import {
   ICharOpSequence,
   CFRString,
@@ -43,6 +42,7 @@ class Editor extends React.Component<IEditorProps, IEditorState> {
     this.updateUserCarets = this.updateUserCarets.bind(this);
     this.onKeyDown = this.onKeyDown.bind(this);
     this.onPaste = this.onPaste.bind(this);
+    this.onCut = this.onCut.bind(this);
     this.socket = {} as SocketIOClient.Socket;
     this.CFRDocument = {} as CFRString;
     this.state = {
@@ -204,7 +204,7 @@ class Editor extends React.Component<IEditorProps, IEditorState> {
     let insertOpSequence: ICharOpSequence = [];
     let opSequence: ICharOpSequence = [];
 
-    if (!(e.ctrlKey && e.which == Key.V)) {
+    if (!((e.ctrlKey && e.which == Key.V) || (e.ctrlKey && e.which == Key.X))) {
       switch (e.which) {
         case Key.Backspace: {
           let _s: number = _start == _end ? _start - 1 : _start;
@@ -283,6 +283,30 @@ class Editor extends React.Component<IEditorProps, IEditorState> {
 
     this.CFRDocument.print();
     opSequence = deleteOpSequence.concat(insertOpSequence);
+    console.log(opSequence);
+    this.sendOperationList(opSequence);
+  }
+
+  private onCut(e: React.ClipboardEvent) {
+    let target = e.target as HTMLTextAreaElement;
+    let _start = target.selectionStart;
+    let _end = target.selectionEnd;
+
+    if (_start == _end) {
+      return;
+    }
+
+    let text: string;
+    text = this.state.document.slice(_start, _end);
+    let opSequence: ICharOpSequence = [];
+
+    opSequence = this.CFRDocument.deleteString({
+      text: text,
+      userId: this.socket.id,
+      globalPos: _start
+    });
+
+    this.CFRDocument.print();
     console.log(opSequence);
     this.sendOperationList(opSequence);
   }
@@ -370,6 +394,7 @@ class Editor extends React.Component<IEditorProps, IEditorState> {
                 onChange={e => this.setState({ document: e.target.value })}
                 onKeyDown={this.onKeyDown}
                 onPaste={this.onPaste}
+                onCut={this.onCut}
                 ref={(e: HTMLTextAreaElement) => {
                   this.textareaElem = e;
                   if (this.textareaElem) {
