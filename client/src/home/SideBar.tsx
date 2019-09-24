@@ -34,7 +34,7 @@ export class SideBar extends React.Component<ISideBarProps, ISideBarState> {
       <div className={styles.infoPanel}>
         <div className={styles.marcInfo}>
           <div className={styles.title}></div>
-        </div> 
+        </div>
         <hr />
         <CollapseMenu
           marcs={this.state.marcs}
@@ -117,15 +117,15 @@ class CollapseMenu extends React.Component<
           </div>
           {this.props.marcs.map(m => (
             <div
-              key={m.id}
+              key={m.marcId}
               className={`${styles.menuItem} ${
-                m.id == this.state.selectedId ? styles.selected : ""
+                m.marcId == this.state.selectedId ? styles.selected : ""
               }`}
               onClick={() => {
                 this.setState({
-                  selectedId: m.id
+                  selectedId: m.marcId
                 });
-                navigate(`/edit/${m.id}`);
+                navigate(`/edit/${m.marcId}`);
               }}
             >
               <FaFile />

@@ -51,8 +51,11 @@ export default class ChangeHandler {
         LogLevel.VERBOSE
       );
       try {
-        this.marcsService.updateMarc(data);
-        socket.to("room_" + data.marcId).emit(Events.SERVER_TEXT_UPDATE, data);
+        this.marcsService.updateMarc(data).then(() => {
+          socket
+            .to("room_" + data.marcId)
+            .emit(Events.SERVER_TEXT_UPDATE, data);
+        });
       } catch (ex) {
         this.logger.log(
           ChangeHandler.name,

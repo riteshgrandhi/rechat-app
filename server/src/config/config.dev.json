@@ -1,4 +1,5 @@
 {
   "clientUrl": ["http://localhost:3000", "https://remarc.localtunnel.me"],
-  "logLevel": "VERBOSE"
+  "logLevel": "VERBOSE",
+  "connectionString": "mongodb://localhost:27017/remarcdb"
 }

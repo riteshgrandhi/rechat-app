@@ -1,10 +1,11 @@
 import express, { Application } from "express";
 import cors from "cors";
 import socketio from "socket.io";
+import mongoose from "mongoose";
 import MarcsController from "./controllers/MarcsController";
 import ChangeHandler from "./controllers/ChangeHandler";
 import MarcsService from "./services/MarcsService";
-import { Config } from "./config/appConfig";
+import { Config } from "./config/serverConfig";
 import { Logger, LogLevel } from "remarc-app-common";
 
 export default class CommServer {
@@ -36,19 +37,38 @@ export default class CommServer {
   }
 
   public start() {
-    const server = this.app.listen(this.port, () => {
+    mongoose.connect(Config.connectionString, { useNewUrlParser: true });
+    let db = mongoose.connection;
+
+    db.on("error", err => {
       this.logger.log(
-        `${CommServer.name}`,
-        `Listening on port ${this.port}`,
-        LogLevel.VERBOSE
+        CommServer.name,
+        "Connection Error",
+        LogLevel.VERBOSE,
+        err
       );
     });
 
-    const io = socketio(server, {
-      path: "/socket.io",
-      transports: ["websocket"]
+    db.once("open", () => {
+      this.logger.log(
+        CommServer.name,
+        "Connection Successful",
+        LogLevel.VERBOSE
+      );
+      const server = this.app.listen(this.port, () => {
+        this.logger.log(
+          `${CommServer.name}`,
+          `Listening on port ${this.port}`,
+          LogLevel.VERBOSE
+        );
+      });
+
+      const io = socketio(server, {
+        path: "/socket.io"
+        // transports: ["websocket"]
+      });
+      const chatHandler = new ChangeHandler(io, this.marcsService, this.logger);
+      chatHandler.init();
     });
-    const chatHandler = new ChangeHandler(io, this.marcsService, this.logger);
-    chatHandler.init();
   }
 }

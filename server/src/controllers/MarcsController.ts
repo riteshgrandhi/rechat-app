@@ -21,27 +21,49 @@ export default class MarcsController {
     this.router.get(`${this.path}/:id`, (req, resp) => {
       this.getMarcById(req, resp);
     });
+    this.router.post(`${this.path}`, (req, resp) => {
+      this.createMarc(req, resp);
+    });
   }
 
-  private getMarcs(req: Request, resp: Response) {
+  private async getMarcs(req: Request, resp: Response) {
     try {
-      return resp.send({ data: this.marcsService.getMarcs() });
-    } catch (ex) {
-      return resp.status(500);
+      return resp.send({ data: await this.marcsService.getMarcs() });
+    } catch (err) {
+      return resp.send({ error: err }).status(500);
     }
   }
 
-  private getMarcById(req: Request, resp: Response) {
+  private async getMarcById(req: Request, resp: Response) {
     try {
-      var marc = this.marcsService.getMarcById(req.params.id);
+      var marc = await this.marcsService.getMarcById(req.params.id);
       if (marc == null) {
         return resp
           .send({ error: "Marc with given Id not found!" })
           .status(404);
       }
       return resp.send({ data: marc });
-    } catch (ex) {
-      return resp.status(500);
+    } catch (err) {
+      return resp.send({ error: err }).status(500);
+    }
+  }
+
+  private async createMarc(req: Request, resp: Response) {
+    try {
+      if (!req.body || !req.body.title) {
+        return resp
+          .send({ error: "'title' field is missing from request" })
+          .status(400);
+      }
+      var marc = await this.marcsService.createMarc(req.body.title);
+      if (marc == null) {
+        return resp
+          .send({ error: "Marc with given title could not be created" })
+          .status(500);
+      }
+      return resp.send({ data: marc });
+    } catch (err) {
+      return resp.send({ error: err }).status(500);
     }
   }
 }

@@ -26,6 +26,7 @@ body {
 
 .infoPanel {
   width: 20vw;
+  min-width: 300px;
   height: 100%;
   display: flex;
   flex-direction: column;
@@ -81,7 +82,7 @@ body {
   }
 
   hr {
-    border: .5px solid #565656;
+    border: 0.5px solid #565656;
     border-radius: 1px;
     margin: 0px;
   }

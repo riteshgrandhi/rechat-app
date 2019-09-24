@@ -71,7 +71,7 @@ class Editor extends React.Component<IEditorProps, IEditorState> {
               this.textareaElem.selectionStart = this.state.document.length;
             }
             this.socket = io(Config.serverUrl, {
-              transports: ["websocket"]
+              // transports: ["websocket"]
             });
             this.initSocketListeners();
           }
