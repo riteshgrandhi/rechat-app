@@ -64,19 +64,60 @@ body {
     display: flex;
     align-items: center;
     padding-left: 20px;
+    background-color: #272727;
+
     &:hover {
-      background-color: #444444;
+      background-color: lighten($color: #272727, $amount: 10%);
       color: #cccccc;
     }
-    &.main {
+    &.main,
+    &.newMarc {
       justify-content: space-between;
       padding-left: 10px;
+    }
+    &.newMarc {
+      background-color: #444444;
+      color: #cccccc;
+      cursor: auto;
     }
     &.selected {
       color: #41b883;
     }
     span {
       padding-left: 10px;
+    }
+    transition: all 0.5s ease;
+  }
+
+  .embeddedTextBox {
+    background: transparent;
+    border: none;
+    color: #cccccc;
+    font-size: 1em;
+    &:focus {
+      outline: none;
+    }
+  }
+
+  .sideBarButton {
+    border: none;
+    font-size: 1em;
+    font-weight: 600;
+    padding: 8px;
+    border-radius: 3px 0px 0px 3px;
+    color: #dddddd;
+    background-color: #3dac7a;
+    cursor: pointer;
+    &:hover {
+      background-color: lighten($color: #3dac7a, $amount: 10%);
+    }
+    &.cancel {
+      background-color: #333333;
+      color: #e04a0e;
+      border-radius: 0px 3px 3px 0px;
+    }
+    &.cancel:hover {
+      background-color: lighten($color: #333333, $amount: 10%);
     }
     transition: all 0.5s ease;
   }

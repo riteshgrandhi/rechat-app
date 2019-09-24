@@ -1,6 +1,6 @@
 import { Router, Request, Response } from "express";
 import MarcsService from "../services/MarcsService";
-import { Logger } from "remarc-app-common";
+import { Logger, LogLevel } from "remarc-app-common";
 
 export default class MarcsController {
   public path = "/marcs";
@@ -24,6 +24,9 @@ export default class MarcsController {
     this.router.post(`${this.path}`, (req, resp) => {
       this.createMarc(req, resp);
     });
+    this.router.put(`${this.path}/:id`, (req, resp) => {
+      this.editMarc(req, resp);
+    });
   }
 
   private async getMarcs(req: Request, resp: Response) {
@@ -42,6 +45,7 @@ export default class MarcsController {
           .send({ error: "Marc with given Id not found!" })
           .status(404);
       }
+
       return resp.send({ data: marc });
     } catch (err) {
       return resp.send({ error: err }).status(500);
@@ -55,13 +59,31 @@ export default class MarcsController {
           .send({ error: "'title' field is missing from request" })
           .status(400);
       }
+
       var marc = await this.marcsService.createMarc(req.body.title);
       if (marc == null) {
         return resp
           .send({ error: "Marc with given title could not be created" })
           .status(500);
       }
+
       return resp.send({ data: marc });
+    } catch (err) {
+      return resp.send({ error: err }).status(500);
+    }
+  }
+
+  private async editMarc(req: Request, resp: Response) {
+    try {
+      if (!req.body || !req.body.title) {
+        return resp
+          .send({ error: "'title' field is missing from request" })
+          .status(400);
+      }
+
+      await this.marcsService.editMarc(req.params.id, req.body.title);
+
+      return resp.send().status(200);
     } catch (err) {
       return resp.send({ error: err }).status(500);
     }

@@ -12,6 +12,7 @@
     "react": "^16.8.6",
     "react-dom": "^16.8.6",
     "react-icons": "^3.7.0",
+    "react-onclickoutside": "^6.9.0",
     "react-scripts": "3.0.1",
     "socket.io-client": "^2.2.0",
     "textarea-caret": "^3.1.0",
@@ -41,6 +42,7 @@
   },
   "devDependencies": {
     "@types/reach__router": "^1.2.4",
+    "@types/react-onclickoutside": "^6.7.3",
     "@types/socket.io-client": "^1.4.32",
     "@types/textarea-caret": "^3.0.0",
     "awesome-typescript-loader": "^5.2.1",

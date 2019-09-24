@@ -416,9 +416,9 @@ class Editor extends React.Component<IEditorProps, IEditorState> {
                   this.textareaElem = e;
                   if (this.textareaElem) {
                     this.addCaretListeners();
-                    if (document.activeElement != this.textareaElem) {
-                      this.textareaElem.focus();
-                    }
+                    // if (document.activeElement != this.textareaElem) {
+                    //   this.textareaElem.focus();
+                    // }
                   }
                 }}
                 autoFocus

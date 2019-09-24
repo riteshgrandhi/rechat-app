@@ -32,12 +32,17 @@ class App extends React.Component<IIndexProps, IIndexState> {
     let _level: LogLevel = LogLevel[Config.logLevel as keyof typeof LogLevel];
     this.logger = new Logger(_level);
     this.getMarcs = this.getMarcs.bind(this);
+    this.refreshMarcs = this.refreshMarcs.bind(this);
     this.state = {
       marcs: []
     };
   }
 
   public componentDidMount() {
+    this.refreshMarcs();
+  }
+
+  private refreshMarcs() {
     this.getMarcs().then(resp => {
       this.logger.log(App.name, `Response`, LogLevel.VERBOSE, resp);
       this.setState({ marcs: resp.data });
@@ -63,6 +68,8 @@ class App extends React.Component<IIndexProps, IIndexState> {
               <SideBar
                 marcs={this.state.marcs}
                 currentMarcId={location.pathname.split("/edit/")[1]}
+                refreshCallback={this.refreshMarcs}
+                logger={this.logger}
               />
               <Router style={{ width: "100%" }}>
                 <Home path="/" />
