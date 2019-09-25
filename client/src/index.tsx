@@ -44,7 +44,7 @@ class App extends React.Component<IIndexProps, IIndexState> {
 
   private refreshMarcs() {
     this.getMarcs().then(resp => {
-      this.logger.log(App.name, `Response`, LogLevel.VERBOSE, resp);
+      this.logger.log(App.name, "Response", LogLevel.VERBOSE, resp);
       this.setState({ marcs: resp.data });
     });
   }

@@ -352,6 +352,12 @@ class EditMarcTitle extends React.Component<
     this.handleClickOutside = this.handleClickOutside.bind(this);
   }
 
+  componentDidUpdate(prevProps: IAddEditMarcProps) {
+    if (this.props.marc && prevProps.marc != this.props.marc) {
+      this.setState({ title: this.props.marc.title });
+    }
+  }
+
   public handleClickOutside() {
     this.onDismiss();
   }
