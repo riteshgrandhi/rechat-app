@@ -1,5 +1,10 @@
 const env = "dev";
 
-let _config = require(`./config.${env}.json`);
+interface IClientConfig {
+  serverUrl: string;
+  logLevel: string;
+}
+
+let _config: IClientConfig = require(`./config.${env}.json`);
 
 export const Config = _config;

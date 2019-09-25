@@ -1,6 +1,6 @@
 const env = "dev";
 
-export interface IServerConfig {
+interface IServerConfig {
   clientUrl: string;
   logLevel: string;
   connectionString: string;
