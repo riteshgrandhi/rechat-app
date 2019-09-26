@@ -3,7 +3,7 @@ import cors from "cors";
 import socketio from "socket.io";
 import mongoose from "mongoose";
 import passport from "passport";
-import { configurePassport } from "./services/configurePassport";
+import { configurePassport } from "./services/AuthMiddleware";
 
 import MarcsController from "./controllers/MarcsController";
 import ChangeHandler from "./controllers/ChangeHandler";
@@ -37,8 +37,12 @@ export default class CommServer {
 
   private initControllers() {
     let _marcsController = new MarcsController(this.marcsService, this.logger);
-    this.app.use("/api", _marcsController.router);
-    
+    this.app.use(
+      "/api",
+      passport.authenticate("jwt", { session: false }),
+      _marcsController.router
+    );
+
     let _authController = new AuthController(this.logger);
     this.app.use("/", _authController.router);
   }

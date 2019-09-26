@@ -3,6 +3,21 @@ import { IUser } from "remarc-app-common";
 import * as argon2 from "argon2";
 import { randomBytes } from "crypto";
 
+export interface IUserDocument extends IUser, Document {
+  password: string;
+  salt: string;
+}
+
+function validatePassword(password: string) {
+  if (password.length < 8) {
+    return false;
+  }
+  if (!/^[a-z0-9]+$/i.test(password)) {
+    return false;
+  }
+  return true;
+}
+
 const usersSchema = new Schema({
   userName: {
     type: String,
@@ -69,12 +84,12 @@ usersSchema.statics.comparePassword = function(
   return argon2.verify(hashPassword, password);
 };
 
-export interface IUserDocument extends IUser, Document {
-  password: string;
-  salt: string;
-}
-
 usersSchema.pre<IUserDocument>("save", async function(next) {
+  
+  if (!validatePassword(this.password)) {
+    throw "Password is not valid";
+  }
+
   this.password = await getHashPassword(this.password);
   next();
 });
