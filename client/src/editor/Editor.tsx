@@ -120,9 +120,9 @@ class Editor extends React.Component<IEditorProps, IEditorState> {
         throw res;
       }
       return res.data;
-    } catch (ex) {
-      this.logger.log(Editor.name, "Failed to fetch", LogLevel.ERROR, ex);
-      throw ex;
+    } catch (err) {
+      this.logger.log(Editor.name, "Failed to fetch", LogLevel.ERROR, err);
+      throw err;
     }
   }
 

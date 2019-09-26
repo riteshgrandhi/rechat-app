@@ -1,6 +1,9 @@
-import { Router, Request, Response } from "express";
+import { Router, Request } from "express";
+import { Logger, IMarc } from "remarc-app-common";
+
+import { TypedResponse } from "../helpers/Helpers";
+import { IDataResponse } from "remarc-app-common";
 import MarcsService from "../services/MarcsService";
-import { Logger, LogLevel } from "remarc-app-common";
 
 export default class MarcsController {
   public path = "/marcs";
@@ -29,63 +32,84 @@ export default class MarcsController {
     });
   }
 
-  private async getMarcs(req: Request, resp: Response) {
+  private async getMarcs(
+    req: Request,
+    resp: TypedResponse<IDataResponse<IMarc[]>>
+  ) {
     try {
-      return resp.send({ data: await this.marcsService.getMarcs() });
+      return resp.json({
+        data: await this.marcsService.getMarcs(),
+        message: "Success"
+      });
     } catch (err) {
-      return resp.send({ error: err }).status(500);
+      return resp.json({ error: err, message: "Failed" }).status(500);
     }
   }
 
-  private async getMarcById(req: Request, resp: Response) {
+  private async getMarcById(
+    req: Request,
+    resp: TypedResponse<IDataResponse<IMarc>>
+  ) {
     try {
       var marc = await this.marcsService.getMarcById(req.params.id);
       if (marc == null) {
         return resp
-          .send({ error: "Marc with given Id not found!" })
+          .json({ error: "Marc with given Id not found!", message: "Failed" })
           .status(404);
       }
 
-      return resp.send({ data: marc });
+      return resp.json({ data: marc, message: "Success" });
     } catch (err) {
-      return resp.send({ error: err }).status(500);
+      return resp.json({ error: err, message: "Failed" }).status(500);
     }
   }
 
-  private async createMarc(req: Request, resp: Response) {
+  private async createMarc(
+    req: Request,
+    resp: TypedResponse<IDataResponse<IMarc>>
+  ) {
     try {
       if (!req.body || !req.body.title) {
         return resp
-          .send({ error: "'title' field is missing from request" })
+          .json({
+            error: "'title' field is missing from request",
+            message: "Failed"
+          })
           .status(400);
       }
 
       var marc = await this.marcsService.createMarc(req.body.title);
       if (marc == null) {
         return resp
-          .send({ error: "Marc with given title could not be created" })
+          .json({
+            error: "Marc with given title could not be created",
+            message: "Failed"
+          })
           .status(500);
       }
 
-      return resp.send({ data: marc });
+      return resp.json({ data: marc, message: "Success" });
     } catch (err) {
-      return resp.send({ error: err }).status(500);
+      return resp.json({ error: err, message: "Failed" }).status(500);
     }
   }
 
-  private async editMarc(req: Request, resp: Response) {
+  private async editMarc(req: Request, resp: TypedResponse<IDataResponse<{}>>) {
     try {
       if (!req.body || !req.body.title) {
         return resp
-          .send({ error: "'title' field is missing from request" })
+          .json({
+            error: "'title' field is missing from request",
+            message: "Failed"
+          })
           .status(400);
       }
 
       await this.marcsService.editMarc(req.params.id, req.body.title);
 
-      return resp.send().status(200);
+      return resp.json({ message: "Success" }).status(200);
     } catch (err) {
-      return resp.send({ error: err }).status(500);
+      return resp.json({ error: err, message: "Failed" }).status(500);
     }
   }
 }

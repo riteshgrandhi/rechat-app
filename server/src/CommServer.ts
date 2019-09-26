@@ -2,11 +2,15 @@ import express, { Application } from "express";
 import cors from "cors";
 import socketio from "socket.io";
 import mongoose from "mongoose";
+import passport from "passport";
+import { configurePassport } from "./services/configurePassport";
+
 import MarcsController from "./controllers/MarcsController";
 import ChangeHandler from "./controllers/ChangeHandler";
 import MarcsService from "./services/MarcsService";
 import { Config } from "./config/serverConfig";
 import { Logger, LogLevel } from "remarc-app-common";
+import AuthController from "./controllers/AuthController";
 
 export default class CommServer {
   private app: Application;
@@ -27,13 +31,16 @@ export default class CommServer {
   private initMiddleware() {
     this.app.use(cors({ origin: Config.clientUrl, optionsSuccessStatus: 200 }));
     this.app.use(express.json());
+    configurePassport(passport);
+    this.app.use(passport.initialize());
   }
 
   private initControllers() {
-    let controllers = [new MarcsController(this.marcsService, this.logger)];
-    controllers.forEach(controller => {
-      this.app.use("/api", controller.router);
-    });
+    let _marcsController = new MarcsController(this.marcsService, this.logger);
+    this.app.use("/api", _marcsController.router);
+    
+    let _authController = new AuthController(this.logger);
+    this.app.use("/", _authController.router);
   }
 
   public start() {

@@ -56,12 +56,12 @@ export default class ChangeHandler {
             .to("room_" + data.marcId)
             .emit(Events.SERVER_TEXT_UPDATE, data);
         });
-      } catch (ex) {
+      } catch (err) {
         this.logger.log(
           ChangeHandler.name,
           `Failed ${Events.CLIENT_TEXT_UPDATE}`,
           LogLevel.ERROR,
-          ex
+          err
         );
       }
     });

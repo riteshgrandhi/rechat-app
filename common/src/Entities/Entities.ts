@@ -47,3 +47,10 @@ export interface IMarc {
   marcId: string;
   document: ICFRCharacter[];
 }
+
+export interface IUser {
+  userName: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+}

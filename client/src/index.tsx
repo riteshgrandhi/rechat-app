@@ -6,7 +6,7 @@ import { Router, Redirect, Location } from "@reach/router";
 import Home from "./home/Home";
 import Editor from "./editor/Editor";
 import ErrorPage from "./other/ErrorPage";
-import { IMarc, Logger, LogLevel } from "@common";
+import { IMarc, Logger, LogLevel, IDataResponse } from "@common";
 import { SideBar } from "./home/SideBar";
 
 import styles from "./styles/app.module.scss";
@@ -42,11 +42,17 @@ class App extends React.Component<IIndexProps, IIndexState> {
     this.refreshMarcs();
   }
 
-  private refreshMarcs() {
-    this.getMarcs().then(resp => {
+  private async refreshMarcs() {
+    try {
+      let resp: IDataResponse<IMarc[]> = await this.getMarcs();
+      if (!resp.data) {
+        throw "'data' is missing";
+      }
       this.logger.log(App.name, "Response", LogLevel.VERBOSE, resp);
       this.setState({ marcs: resp.data });
-    });
+    } catch (err) {
+      this.logger.log(App.name, "Error", LogLevel.ERROR, err);
+    }
   }
 
   private async getMarcs() {
@@ -54,8 +60,8 @@ class App extends React.Component<IIndexProps, IIndexState> {
       return await fetch(`${Config.serverUrl}/api/marcs`).then(res =>
         res.json()
       );
-    } catch (ex) {
-      throw `Failed to fetch: ${ex}`;
+    } catch (err) {
+      throw `Failed to fetch: ${err}`;
     }
   }
 

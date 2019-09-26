@@ -4,6 +4,7 @@ interface IServerConfig {
   clientUrl: string;
   logLevel: string;
   connectionString: string;
+  jwtSecret: string;
 }
 
 let _config: IServerConfig = require(`./config.${env}.json`);
