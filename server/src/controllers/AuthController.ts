@@ -94,15 +94,27 @@ export default class AuthController {
 
       try {
         let u = await _newUser.save();
-        let _u: IUser = { ...u };
-        this.logger.log(AuthController.name, "", LogLevel.VERBOSE, _u);
-        return resp.send({ user: u });
+        let _u: IUser = {
+          userName: u.userName,
+          firstName: u.firstName,
+          lastName: u.lastName,
+          email: u.email
+        };
+        this.logger.log(
+          AuthController.name,
+          "Sign Up Successful",
+          LogLevel.VERBOSE,
+          _u
+        );
+        return resp.send({ user: _u, message: "Success" });
       } catch (err) {
         this.logger.log(AuthController.name, "DB Error", LogLevel.VERBOSE, err);
         throw err;
       }
     } catch (err) {
-      return resp.status(500).send({ error: err.message || err });
+      return resp
+        .send({ error: err.message || err, message: "Failed" })
+        .status(500);
     }
   }
 }

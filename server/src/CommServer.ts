@@ -3,7 +3,7 @@ import cors from "cors";
 import socketio from "socket.io";
 import mongoose from "mongoose";
 import passport from "passport";
-import { configurePassport } from "./services/AuthMiddleware";
+import { configureAuthMiddleware } from "./services/AuthMiddleware";
 
 import MarcsController from "./controllers/MarcsController";
 import ChangeHandler from "./controllers/ChangeHandler";
@@ -31,7 +31,7 @@ export default class CommServer {
   private initMiddleware() {
     this.app.use(cors({ origin: Config.clientUrl, optionsSuccessStatus: 200 }));
     this.app.use(express.json());
-    configurePassport(passport);
+    configureAuthMiddleware(passport);
     this.app.use(passport.initialize());
   }
 

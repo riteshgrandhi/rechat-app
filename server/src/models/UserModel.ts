@@ -23,11 +23,11 @@ const usersSchema = new Schema({
     type: String,
     required: [true, "UserName is required"],
     validate: {
-      validator: (v: string) => {
-        if (v.length < 6) {
+      validator: (userName: string) => {
+        if (userName.length < 5) {
           return false;
         }
-        if (!/^[a-z0-9]+$/i.test(v)) {
+        if (!/^[a-z0-9]+$/i.test(userName)) {
           return false;
         }
         return true;
@@ -39,22 +39,11 @@ const usersSchema = new Schema({
   password: {
     type: String,
     required: [true, "Password is required"]
-    // validate: {
-    //   validator: (v: string) => {
-    //     if (v.length < 8) {
-    //       return false;
-    //     }
-    //     if (!/^[a-z0-9]+$/i.test(v)) {
-    //       return false;
-    //     }
-    //     return true;
-    //   },
-    //   msg: "Password is not valid"
-    // }
   },
   email: {
     type: String,
     required: [true, "Email is required"],
+    unique: true,
     validate: {
       validator: (v: string) => {
         if (
@@ -85,7 +74,6 @@ usersSchema.statics.comparePassword = function(
 };
 
 usersSchema.pre<IUserDocument>("save", async function(next) {
-  
   if (!validatePassword(this.password)) {
     throw "Password is not valid";
   }

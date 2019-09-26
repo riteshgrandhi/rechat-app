@@ -13,6 +13,12 @@ export enum IEquality {
   EQUAL = 0,
   GREATER = 1
 }
+export enum Role {
+  // READ = -1,
+  EDITOR = 0,
+  OWNER = 1,
+  ADMIN = 2
+}
 export interface ICharOpSequence
   extends Array<{ type: OpType; cfrCharacter: ICFRCharacter }> {}
 
@@ -46,6 +52,10 @@ export interface IMarc {
   title: string;
   marcId: string;
   document: ICFRCharacter[];
+  usersList: {
+    userName: string;
+    role: Role;
+  }[];
 }
 
 export interface IUser {

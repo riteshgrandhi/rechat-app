@@ -1,4 +1,11 @@
-import { IMarc, CFRString, IChangeEventData, Logger } from "remarc-app-common";
+import {
+  IMarc,
+  CFRString,
+  IChangeEventData,
+  Logger,
+  IUser,
+  Role
+} from "remarc-app-common";
 import MarcModel, { IMarcDocument } from "./../models/MarcModel";
 import { MongoError } from "mongodb";
 import ShortId from "shortid";
@@ -10,8 +17,14 @@ export default class MarcsService {
     this.logger = logger;
   }
 
-  public async getMarcs(): Promise<IMarc[]> {
-    return MarcModel.find({}, { _id: false, document: false })
+  public async getMarcs(user: IUser): Promise<IMarc[]> {
+    return MarcModel.find(
+      {
+        "usersList.userName": user.userName,
+        "usersList.role": { $gte: Role.EDITOR }
+      },
+      { _id: false, document: false, "usersList._id": false, __v: false }
+    )
       .then(marcs => {
         return marcs;
       })
@@ -20,8 +33,23 @@ export default class MarcsService {
       });
   }
 
-  public async getMarcById(marcId: string): Promise<IMarc | null> {
-    return MarcModel.findOne({ marcId: marcId }, { _id: false })
+  public async getMarcById(
+    marcId: string,
+    user?: IUser
+  ): Promise<IMarc | null> {
+    let _query: any = { marcId: marcId };
+    if (user) {
+      _query = {
+        ..._query,
+        "usersList.userName": user.userName,
+        "usersList.role": { $gte: Role.EDITOR }
+      };
+    }
+    return MarcModel.findOne(_query, {
+      _id: false,
+      "usersList._id": false,
+      __v: false
+    })
       .then(marc => {
         return marc;
       })
@@ -30,10 +58,10 @@ export default class MarcsService {
       });
   }
 
-  public async updateMarc(data: IChangeEventData) {
+  public async updateMarc(data: IChangeEventData, user?: IUser) {
     let marc: IMarc | null;
     try {
-      marc = await this.getMarcById(data.marcId);
+      marc = await this.getMarcById(data.marcId, user);
     } catch (err) {
       throw err;
     }
@@ -55,30 +83,36 @@ export default class MarcsService {
       });
   }
 
-  public async editMarc(marcId: string, title: string) {
-    return MarcModel.updateOne({ marcId: marcId }, { title: title })
-      .then(m => {
-        return m;
-      })
-      .catch((err: MongoError) => {
-        throw err.errmsg;
-      });
+  public async editMarc(
+    marcId: string,
+    title: string,
+    user: IUser
+  ): Promise<IMarc | null> {
+    return await MarcModel.updateOne(
+      {
+        marcId: marcId,
+        "usersList.userName": user.userName,
+        "usersList.role": { $gte: Role.OWNER }
+      },
+      { title: title }
+    ).then(m => {
+      if (m.nModified == 0) {
+        throw "No matched Marc found";
+      }
+      return m;
+    });
   }
 
-  public createMarc(title: string): Promise<IMarc | null> {
+  public async createMarc(title: string, user: IUser): Promise<IMarc | null> {
     let marcDocument = new MarcModel({
       title: title,
       marcId: ShortId.generate(),
-      document: []
+      document: [],
+      usersList: [{ userName: user.userName, role: Role.OWNER }]
     } as IMarc);
 
-    return marcDocument
-      .save()
-      .then((m: IMarcDocument) => {
-        return m;
-      })
-      .catch((err: MongoError) => {
-        throw err.errmsg;
-      });
+    return await marcDocument.save().then((m: IMarcDocument) => {
+      return m;
+    });
   }
 }

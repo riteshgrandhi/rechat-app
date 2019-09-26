@@ -5,7 +5,7 @@ import UserModel from "../models/UserModel";
 import { IUser } from "remarc-app-common";
 import { Config } from "../config/serverConfig";
 
-export function configurePassport(passport: PassportStatic) {
+export function configureAuthMiddleware(passport: PassportStatic) {
   passport.use(
     new LocalStrategy(
       { usernameField: "userName", passwordField: "password" },
@@ -61,10 +61,8 @@ export function configurePassport(passport: PassportStatic) {
       },
       async (jwtPayload: IUser, cb) => {
         try {
-          return cb(
-            null,
-            await UserModel.findOne({ userName: jwtPayload.userName })
-          );
+          // let user = await UserModel.findOne({ userName: jwtPayload.userName })
+          return cb(null, jwtPayload);
         } catch (err) {
           return cb(err);
         }

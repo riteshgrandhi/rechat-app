@@ -1,5 +1,5 @@
 import { Router, Request } from "express";
-import { Logger, IMarc } from "remarc-app-common";
+import { Logger, IMarc, IUser } from "remarc-app-common";
 
 import { TypedResponse } from "../helpers/Helpers";
 import { IDataResponse } from "remarc-app-common";
@@ -38,7 +38,7 @@ export default class MarcsController {
   ) {
     try {
       return resp.json({
-        data: await this.marcsService.getMarcs(),
+        data: await this.marcsService.getMarcs(req.user as IUser),
         message: "Success"
       });
     } catch (err) {
@@ -51,7 +51,10 @@ export default class MarcsController {
     resp: TypedResponse<IDataResponse<IMarc>>
   ) {
     try {
-      var marc = await this.marcsService.getMarcById(req.params.id);
+      var marc = await this.marcsService.getMarcById(
+        req.params.id,
+        req.user as IUser
+      );
       if (marc == null) {
         return resp
           .json({ error: "Marc with given Id not found!", message: "Failed" })
@@ -78,7 +81,10 @@ export default class MarcsController {
           .status(400);
       }
 
-      var marc = await this.marcsService.createMarc(req.body.title);
+      var marc = await this.marcsService.createMarc(
+        req.body.title,
+        req.user as IUser
+      );
       if (marc == null) {
         return resp
           .json({
@@ -105,7 +111,11 @@ export default class MarcsController {
           .status(400);
       }
 
-      await this.marcsService.editMarc(req.params.id, req.body.title);
+      await this.marcsService.editMarc(
+        req.params.id,
+        req.body.title,
+        req.user as IUser
+      );
 
       return resp.json({ message: "Success" }).status(200);
     } catch (err) {
