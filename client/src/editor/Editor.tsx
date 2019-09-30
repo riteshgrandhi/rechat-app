@@ -15,7 +15,7 @@ import {
   LogLevel,
   IDataResponse
 } from "@common";
-import { axiosAuth } from "../services/AxiosInstance";
+import ApiService from "../services/ApiService";
 import { Key } from "ts-keycode-enum";
 import getCaretCoordinates from "textarea-caret";
 
@@ -25,11 +25,16 @@ interface IEditorState {
   isLoading: boolean;
 }
 
-interface IEditorProps
-  extends RouteComponentProps<{ marcId: string; logger: Logger }> {}
+// interface IEditorProps extends RouteComponentProps<{ marcId: string }> {
+interface IEditorProps {
+  marcId: string;
+  logger: Logger;
+  apiService: ApiService;
+}
 
 class Editor extends React.Component<IEditorProps, IEditorState> {
   private logger: Logger;
+  private apiService: ApiService;
   private socket: SocketIOClient.Socket;
   private CFRDocument: CFRString;
   private textareaElem: HTMLTextAreaElement;
@@ -42,7 +47,8 @@ class Editor extends React.Component<IEditorProps, IEditorState> {
     this.caretPosition = 0;
 
     let _level: LogLevel = LogLevel[Config.logLevel as keyof typeof LogLevel];
-    this.logger = this.props.logger || new Logger(_level);
+    this.logger = this.props.logger;
+    this.apiService = props.apiService;
     this.checkCaret = this.checkCaret.bind(this);
     this.addCaretListeners = this.addCaretListeners.bind(this);
     this.onServerTextUpdate = this.onServerTextUpdate.bind(this);
@@ -80,7 +86,8 @@ class Editor extends React.Component<IEditorProps, IEditorState> {
         );
       })
       .catch(err => {
-        navigate("/error", {
+        navigate("/", {
+          // navigate("/error", {
           state: {
             error: err,
             message: `Failed to Fetch Marc: ${this.props.marcId}`
@@ -115,10 +122,8 @@ class Editor extends React.Component<IEditorProps, IEditorState> {
 
   private async getMarcById(marcId: string): Promise<IMarc> {
     try {
-      let res: IDataResponse<IMarc> = await axiosAuth
-        .get<IDataResponse<IMarc>>(`/api/marcs/${marcId}`, {
-          params: { auth: true }
-        })
+      let res: IDataResponse<IMarc> = await this.apiService.axiosAuth
+        .get<IDataResponse<IMarc>>(`/api/marcs/${marcId}`)
         .then(r => r.data);
       if (!res.data) {
         throw res.error || "Data is missing";
@@ -395,39 +400,37 @@ class Editor extends React.Component<IEditorProps, IEditorState> {
     return (
       <Fragment>
         {!this.state.isLoading && (
-          <div className={styles.app}>
-            <div className={styles.editor}>
-              {this.state.floatingCarets.map(userCaret => (
-                <span
-                  style={{
-                    position: "absolute",
-                    left: this.textareaElem.offsetLeft + userCaret.caret.left,
-                    top: this.textareaElem.offsetTop + userCaret.caret.top + 20,
-                    backgroundColor: "black"
-                  }}
-                >
-                  {userCaret.userId}
-                </span>
-              ))}
-              <textarea
-                className={styles.textarea}
-                value={this.state.document}
-                onChange={e => this.setState({ document: e.target.value })}
-                onKeyDown={this.onKeyDown}
-                onPaste={this.onPaste}
-                onCut={this.onCut}
-                ref={(e: HTMLTextAreaElement) => {
-                  this.textareaElem = e;
-                  if (this.textareaElem) {
-                    this.addCaretListeners();
-                    // if (document.activeElement != this.textareaElem) {
-                    //   this.textareaElem.focus();
-                    // }
-                  }
+          <div className={styles.editor}>
+            {this.state.floatingCarets.map(userCaret => (
+              <span
+                style={{
+                  position: "absolute",
+                  left: this.textareaElem.offsetLeft + userCaret.caret.left,
+                  top: this.textareaElem.offsetTop + userCaret.caret.top + 20,
+                  backgroundColor: "black"
                 }}
-                autoFocus
-              />
-            </div>
+              >
+                {userCaret.userId}
+              </span>
+            ))}
+            <textarea
+              className={styles.textarea}
+              value={this.state.document}
+              onChange={e => this.setState({ document: e.target.value })}
+              onKeyDown={this.onKeyDown}
+              onPaste={this.onPaste}
+              onCut={this.onCut}
+              ref={(e: HTMLTextAreaElement) => {
+                this.textareaElem = e;
+                if (this.textareaElem) {
+                  this.addCaretListeners();
+                  // if (document.activeElement != this.textareaElem) {
+                  //   this.textareaElem.focus();
+                  // }
+                }
+              }}
+              autoFocus
+            />
           </div>
         )}
       </Fragment>

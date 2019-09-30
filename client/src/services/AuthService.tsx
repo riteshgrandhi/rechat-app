@@ -1,5 +1,4 @@
-import { AxiosResponse } from "axios";
-import { axiosNoAuth } from "./AxiosInstance";
+import axios from "axios";
 import {
   IUser,
   ISignUpResponse,
@@ -7,22 +6,20 @@ import {
   Logger,
   LogLevel
 } from "@common";
+import { Config } from "../config/appConfig";
 
 export default class AuthService {
   public isAuthenticated: boolean;
   private logger: Logger;
-  private _token?: string;
+  // private _token?: string;
 
   constructor(logger: Logger) {
     this.logger = logger;
-    this.isAuthenticated = false;
+    this.isAuthenticated = this.getToken() != null;
   }
 
-  public getToken(): string {
-    if (!this._token) {
-      throw "Token is missing";
-    }
-    return this._token;
+  public getToken(): string | null {
+    return sessionStorage.getItem("access_token");
   }
 
   public async login(
@@ -30,8 +27,8 @@ export default class AuthService {
     password: string
   ): Promise<ILoginResponse> {
     try {
-      return await axiosNoAuth
-        .post<any, AxiosResponse<ILoginResponse>>("/auth/login", {
+      return await axios
+        .post<ILoginResponse>(`${Config.serverUrl}/auth/login`, {
           userName: userName,
           password: password
         })
@@ -39,7 +36,8 @@ export default class AuthService {
           if (!resp.data.token) {
             throw "login failed";
           }
-          this._token = resp.data.token;
+          let token = resp.data.token;
+          sessionStorage.setItem("access_token", token);
           this.isAuthenticated = true;
           return resp.data;
         });
@@ -51,8 +49,8 @@ export default class AuthService {
 
   public async signup(user: IUser, password: String): Promise<ISignUpResponse> {
     try {
-      return await axiosNoAuth
-        .post<any, AxiosResponse<ISignUpResponse>>("/auth/signup", {
+      return await axios
+        .post<ISignUpResponse>(`${Config.serverUrl}/auth/signup`, {
           userName: user.userName,
           password: password,
           email: user.email,

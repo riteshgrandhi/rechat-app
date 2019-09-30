@@ -10,17 +10,17 @@ import {
   FaHome
 } from "react-icons/fa";
 import { FiX, FiCheck } from "react-icons/fi";
-import { navigate } from "@reach/router";
+import { navigate, RouteComponentProps } from "@reach/router";
 import onClickOutside from "react-onclickoutside";
 import { Key } from "ts-keycode-enum";
 
-import { axiosAuth } from "./../services/AxiosInstance";
-import { Config } from "../config/appConfig";
+import ApiService from "../services/ApiService";
 
 interface ISideBarProps {
-  marcs: IMarc[];
   currentMarcId?: string;
+  marcs: IMarc[];
   logger: Logger;
+  apiService: ApiService;
   refreshCallback: () => void;
 }
 
@@ -30,8 +30,12 @@ interface ISideBarState {
 }
 
 export class SideBar extends React.Component<ISideBarProps, ISideBarState> {
+  private apiService: ApiService;
+
   constructor(props: ISideBarProps) {
     super(props);
+
+    this.apiService = props.apiService;
     this.onSelectCallback = this.onSelectCallback.bind(this);
     this.state = {
       marcs: props.marcs,
@@ -82,6 +86,7 @@ export class SideBar extends React.Component<ISideBarProps, ISideBarState> {
             <hr />
             <div className={styles.marcInfo}>
               <EditMarcTitleOutClick
+                apiService={this.apiService}
                 refreshCallback={this.props.refreshCallback}
                 marc={this.state.currentMarc}
               ></EditMarcTitleOutClick>
@@ -91,6 +96,7 @@ export class SideBar extends React.Component<ISideBarProps, ISideBarState> {
         <hr />
         <CollapseMenu
           marcs={this.state.marcs}
+          apiService={this.apiService}
           selectedId={
             this.state.currentMarc ? this.state.currentMarc.marcId : ""
           }
@@ -105,6 +111,7 @@ export class SideBar extends React.Component<ISideBarProps, ISideBarState> {
 interface ICollapseMenuProps {
   marcs: IMarc[];
   selectedId: string;
+  apiService: ApiService;
   refreshCallback: () => void;
   onSelectCallback: (selectedMarcId?: string) => void;
 }
@@ -165,6 +172,7 @@ class CollapseMenu extends React.Component<
         </div>
         <div className={this.state.isOpen ? styles.open : styles.closed}>
           <AddMarcTitleOutClick
+            apiService={this.props.apiService}
             refreshCallback={() => {
               this.setState(
                 {
@@ -204,6 +212,7 @@ class CollapseMenu extends React.Component<
 }
 
 interface IAddEditMarcProps {
+  apiService: ApiService;
   refreshCallback: () => void;
   marc?: IMarc;
 }
@@ -218,8 +227,10 @@ class AddMarcTitle extends React.Component<
   IAddEditMarcProps,
   IAddEditMarcState
 > {
+  private apiService: ApiService;
   constructor(props: IAddEditMarcProps) {
     super(props);
+    this.apiService = props.apiService;
     this.state = {
       isEditing: false,
       isLoading: false,
@@ -243,8 +254,8 @@ class AddMarcTitle extends React.Component<
       isLoading: true,
       title: ""
     });
-    axiosAuth
-      .post("/api/marcs", { title: _title }, { params: { auth: true } })
+    this.apiService.axiosAuth
+      .post("/api/marcs", { title: _title })
       .then(() => {
         this.setState(
           {
@@ -263,7 +274,8 @@ class AddMarcTitle extends React.Component<
             isLoading: false
           },
           () => {
-            navigate("/error", {
+            navigate("/", {
+              // navigate("/error", {
               state: {
                 error: err,
                 message: `Failed to Create Marc: ${this.state.title}`
@@ -336,8 +348,11 @@ class EditMarcTitle extends React.Component<
   IAddEditMarcProps,
   IAddEditMarcState
 > {
+  private apiService: ApiService;
+
   constructor(props: IAddEditMarcProps) {
     super(props);
+    this.apiService = props.apiService;
     this.state = {
       isEditing: false,
       isLoading: false,
@@ -374,7 +389,7 @@ class EditMarcTitle extends React.Component<
     //   },
     //   body: JSON.stringify({ title: _title })
     // })
-    axiosAuth
+    this.apiService.axiosAuth
       .put(`/api/marcs/${this.props.marc.marcId}`, { title: _title })
       .then(() => {
         this.setState(
@@ -394,7 +409,8 @@ class EditMarcTitle extends React.Component<
             isLoading: false
           },
           () => {
-            navigate("/error", {
+            navigate("/", {
+              // navigate("/error", {
               state: {
                 error: err,
                 message: `Failed to Edit Marc: ${this.state.title}`

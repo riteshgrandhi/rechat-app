@@ -12,6 +12,10 @@ body {
   height: 100vh;
   display: flex;
   color: #707070;
+  & > div {
+    display: flex;
+    width: 100%;
+  }
 }
 
 .routeContainer {
@@ -19,7 +23,7 @@ body {
 }
 
 .homePage {
-  width: 100%;
+  width: 80vw;
   display: flex;
   justify-content: center;
 }
@@ -132,7 +136,7 @@ body {
 }
 
 .editor {
-  width: 100%;
+  width: 80vw;
   display: flex;
   justify-content: center;
   .textarea {
