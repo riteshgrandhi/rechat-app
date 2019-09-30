@@ -69,8 +69,6 @@ export default class Home extends React.Component<IHomeProps, IHomeState> {
 
   render() {
     return (
-      // <Location>
-      //   {({ location }) => (
       <Fragment>
         <SideBar
           marcs={this.state.marcs}
@@ -94,8 +92,6 @@ export default class Home extends React.Component<IHomeProps, IHomeState> {
           </div>
         )}
       </Fragment>
-      //   )}
-      // </Location>
     );
   }
 }

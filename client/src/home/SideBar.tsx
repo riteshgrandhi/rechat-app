@@ -301,7 +301,6 @@ class AddMarcTitle extends React.Component<
             className={styles.menuItem}
             onClick={() => {
               this.setState({ isEditing: true });
-              this.props.refreshCallback();
             }}
           >
             <FaPlus />
@@ -349,6 +348,7 @@ class EditMarcTitle extends React.Component<
   IAddEditMarcState
 > {
   private apiService: ApiService;
+  private _currentTitle: string;
 
   constructor(props: IAddEditMarcProps) {
     super(props);
@@ -358,6 +358,7 @@ class EditMarcTitle extends React.Component<
       isLoading: false,
       title: props.marc ? props.marc.title : ""
     };
+    this._currentTitle = this.state.title;
     this.onSubmit = this.onSubmit.bind(this);
     this.onDismiss = this.onDismiss.bind(this);
     this.handleClickOutside = this.handleClickOutside.bind(this);
@@ -375,7 +376,8 @@ class EditMarcTitle extends React.Component<
 
   private onSubmit() {
     let _title: string = this.state.title;
-    if (!_title || !this.props.marc) {
+    if (!_title || !this.props.marc || this._currentTitle == _title) {
+      this.setState({ title: this._currentTitle, isEditing: false });
       return;
     }
     this.setState({
@@ -398,6 +400,7 @@ class EditMarcTitle extends React.Component<
             isLoading: false
           },
           () => {
+            this._currentTitle = this.state.title;
             this.props.refreshCallback();
           }
         );
@@ -437,7 +440,6 @@ class EditMarcTitle extends React.Component<
             <FaPen
               onClick={() => {
                 this.setState({ isEditing: true });
-                this.props.refreshCallback();
               }}
             ></FaPen>
           </div>
