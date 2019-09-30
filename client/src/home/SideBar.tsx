@@ -1,6 +1,6 @@
 import React, { Fragment, ChangeEvent } from "react";
 import styles from "../styles/app.module.scss";
-import { IMarc, Logger } from "@common";
+import { IMarc, Logger, IDataResponse } from "@common";
 import {
   FaChevronDown,
   FaChevronRight,
@@ -11,9 +11,11 @@ import {
 } from "react-icons/fa";
 import { FiX, FiCheck } from "react-icons/fi";
 import { navigate } from "@reach/router";
-import { Config } from "../config/appConfig";
 import onClickOutside from "react-onclickoutside";
 import { Key } from "ts-keycode-enum";
+
+import { axiosAuth } from "./../services/AxiosInstance";
+import { Config } from "../config/appConfig";
 
 interface ISideBarProps {
   marcs: IMarc[];
@@ -241,14 +243,8 @@ class AddMarcTitle extends React.Component<
       isLoading: true,
       title: ""
     });
-    fetch(`${Config.serverUrl}/api/marcs`, {
-      method: "post",
-      headers: {
-        Accept: "application/json, text/plain, */*",
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({ title: _title })
-    })
+    axiosAuth
+      .post("/api/marcs", { title: _title }, { params: { auth: true } })
       .then(() => {
         this.setState(
           {
@@ -370,14 +366,16 @@ class EditMarcTitle extends React.Component<
     this.setState({
       isLoading: true
     });
-    fetch(`${Config.serverUrl}/api/marcs/${this.props.marc.marcId}`, {
-      method: "put",
-      headers: {
-        Accept: "application/json, text/plain, */*",
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({ title: _title })
-    })
+    // fetch(`${Config.serverUrl}/api/marcs/${this.props.marc.marcId}`, {
+    //   method: "put",
+    //   headers: {
+    //     Accept: "application/json, text/plain, */*",
+    //     "Content-Type": "application/json"
+    //   },
+    //   body: JSON.stringify({ title: _title })
+    // })
+    axiosAuth
+      .put(`/api/marcs/${this.props.marc.marcId}`, { title: _title })
       .then(() => {
         this.setState(
           {
@@ -399,7 +397,7 @@ class EditMarcTitle extends React.Component<
             navigate("/error", {
               state: {
                 error: err,
-                message: `Failed to Create Marc: ${this.state.title}`
+                message: `Failed to Edit Marc: ${this.state.title}`
               }
             });
           }

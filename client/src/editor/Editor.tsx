@@ -12,8 +12,10 @@ import {
   IChangeEventData,
   IMarc,
   Logger,
-  LogLevel
+  LogLevel,
+  IDataResponse
 } from "@common";
+import { axiosAuth } from "../services/AxiosInstance";
 import { Key } from "ts-keycode-enum";
 import getCaretCoordinates from "textarea-caret";
 
@@ -113,11 +115,13 @@ class Editor extends React.Component<IEditorProps, IEditorState> {
 
   private async getMarcById(marcId: string): Promise<IMarc> {
     try {
-      let res: { data: IMarc; error?: any } = await fetch(
-        `${Config.serverUrl}/api/marcs/${marcId}`
-      ).then(res => res.json());
-      if (res.error) {
-        throw res;
+      let res: IDataResponse<IMarc> = await axiosAuth
+        .get<IDataResponse<IMarc>>(`/api/marcs/${marcId}`, {
+          params: { auth: true }
+        })
+        .then(r => r.data);
+      if (!res.data) {
+        throw res.error || "Data is missing";
       }
       return res.data;
     } catch (err) {

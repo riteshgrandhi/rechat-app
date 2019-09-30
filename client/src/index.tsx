@@ -6,31 +6,39 @@ import { Router, Redirect, Location } from "@reach/router";
 import Home from "./home/Home";
 import Editor from "./editor/Editor";
 import ErrorPage from "./other/ErrorPage";
+import initAxios, { axiosAuth } from "./services/AxiosInstance";
 import { IMarc, Logger, LogLevel, IDataResponse } from "@common";
 import { SideBar } from "./home/SideBar";
 
 import styles from "./styles/app.module.scss";
 import { Config } from "./config/appConfig";
+import AuthService from "./services/AuthService";
 
-interface IIndexProps {}
-interface IIndexState {
+interface IAppProps {
+  logger: Logger;
+  authService: AuthService;
+}
+interface IAppState {
   marcs: IMarc[];
 }
 
 /**
  * Main Application Component
  */
-class App extends React.Component<IIndexProps, IIndexState> {
+class App extends React.Component<IAppProps, IAppState> {
   private logger: Logger;
+  // private authService: AuthService;
 
   /**
    * App Constructor
    * @param props
    */
-  constructor(props: IIndexProps) {
+  constructor(props: IAppProps) {
     super(props);
-    let _level: LogLevel = LogLevel[Config.logLevel as keyof typeof LogLevel];
-    this.logger = new Logger(_level);
+
+    this.logger = props.logger;
+    // this.authService = props.authService;
+
     this.getMarcs = this.getMarcs.bind(this);
     this.refreshMarcs = this.refreshMarcs.bind(this);
     this.state = {
@@ -44,22 +52,26 @@ class App extends React.Component<IIndexProps, IIndexState> {
 
   private async refreshMarcs() {
     try {
-      let resp: IDataResponse<IMarc[]> = await this.getMarcs();
-      if (!resp.data) {
-        throw "'data' is missing";
-      }
-      this.logger.log(App.name, "Response", LogLevel.VERBOSE, resp);
-      this.setState({ marcs: resp.data });
+      let resp: IMarc[] = await this.getMarcs();
+      this.setState({ marcs: resp });
     } catch (err) {
       this.logger.log(App.name, "Error", LogLevel.ERROR, err);
     }
   }
 
-  private async getMarcs() {
+  private async getMarcs(): Promise<IMarc[]> {
     try {
-      return await fetch(`${Config.serverUrl}/api/marcs`).then(res =>
-        res.json()
-      );
+      let res: IDataResponse<IMarc[]> = await axiosAuth
+        .get<IDataResponse<IMarc[]>>("/api/marcs", { params: { auth: true } })
+        .then(r => r.data)
+        .catch(err => {
+          throw err;
+        });
+      if (!res.data) {
+        throw res.error || "'data' is missing";
+      }
+      this.logger.log(App.name, "Response", LogLevel.VERBOSE, res);
+      return res.data;
     } catch (err) {
       throw `Failed to fetch: ${err}`;
     }
@@ -95,7 +107,22 @@ class App extends React.Component<IIndexProps, IIndexState> {
   }
 }
 
-ReactDOM.render(<App />, document.getElementById("root"));
+(async () => {
+  let _level: LogLevel = LogLevel[Config.logLevel as keyof typeof LogLevel];
+  let _logger = new Logger(_level);
+  let _authService = new AuthService(_logger);
+
+  if (!_authService.isAuthenticated) {
+    await _authService.login("admin", "rigrandh").then(() => {
+      initAxios(_authService);
+    });
+  }
+
+  ReactDOM.render(
+    <App logger={_logger} authService={_authService} />,
+    document.getElementById("root")
+  );
+})();
 
 // If you want your app to work offline and load faster, you can change
 // unregister() to register() below. Note this comes with some pitfalls.
