@@ -5,10 +5,10 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  background-color: #272727;
 }
 
 .app {
-  // width: 100vw;
   height: 100vh;
   display: flex;
   color: #707070;
@@ -18,12 +18,78 @@ body {
   }
 }
 
-.routeContainer {
-  width: 100%;
+.loginPage {
+  display: flex;
+  justify-content: start;
+  align-items: center;
+  flex-direction: column;
+  background-color: #272727;
+  .form {
+    padding-top: 6%;
+    display: flex;
+    flex-direction: column;
+    .title {
+      top: 60px;
+      padding-bottom: 20px;
+      display: flex;
+      align-items: center;
+      flex-direction: column;
+      .primary {
+        font-size: 4em;
+        font-weight: 900;
+        color: #41b883;
+      }
+      .secondary {
+        font-size: 1.5em;
+        font-weight: 400;
+      }
+    }
+
+    label {
+      text-align: center;
+      font-size: 1em;
+      padding: 10px;
+      color: #aaaaaa;
+    }
+
+    input[type="text"],
+    [type="password"] {
+      background-color: lighten($color: #272727, $amount: 10%);
+      padding: 15px;
+      border: none;
+      border-radius: 3px;
+      color: #cccccc;
+      font-size: 1.3em;
+      &:focus {
+        outline: none;
+      }
+      &:focus,
+      &:hover {
+        background-color: lighten($color: #272727, $amount: 20%);
+      }
+      transition: all 0.5s ease;
+    }
+
+    input[type="submit"] {
+      margin-top: 40px;
+      color: #dddddd;
+      font-size: 1.1em;
+      border-radius: 4px;
+      background-color: #3dac7a;
+      padding: 15px;
+      border: none;
+      cursor: pointer;
+      &:hover {
+        background-color: lighten($color: #3dac7a, $amount: 10%);
+      }
+      transition: all 0.5s ease;
+    }
+  }
 }
 
 .homePage {
   width: 80vw;
+  background-color: #ffffff;
   display: flex;
   justify-content: center;
 }

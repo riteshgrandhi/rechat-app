@@ -2,7 +2,7 @@ import React, { Fragment } from "react";
 import io from "socket.io-client";
 import styles from "../styles/app.module.scss";
 import { RouteComponentProps, navigate } from "@reach/router";
-import { Config } from "./../config/appConfig";
+import { Config } from "../config/appConfig";
 import {
   ICharOpSequence,
   CFRString,

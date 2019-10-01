@@ -4,7 +4,7 @@ import styles from "./../styles/app.module.scss";
 import { SideBar } from "./SideBar";
 import { Logger, IMarc, IDataResponse, LogLevel } from "@common";
 import ApiService from "../services/ApiService";
-import Editor from "../editor/Editor";
+import Editor from "./Editor";
 
 interface IHomeProps extends RouteComponentProps<{ currentMarcId: string }> {
   marcs: IMarc[];

@@ -1,7 +1,9 @@
 import React from "react";
 import AuthService from "../services/AuthService";
-import { Logger } from "@common";
-import { RouteComponentProps } from "@reach/router";
+import { Logger, LogLevel } from "@common";
+import { RouteComponentProps, navigate } from "@reach/router";
+
+import styles from "./../styles/app.module.scss";
 
 interface ILoginProps extends RouteComponentProps<{}> {
   logger: Logger;
@@ -24,6 +26,7 @@ export class Login extends React.Component<ILoginProps, ILoginState> {
    */
   constructor(props: ILoginProps) {
     super(props);
+
     this.logger = props.logger;
     this.authService = props.authService;
     this.onSubmit = this.onSubmit.bind(this);
@@ -38,28 +41,35 @@ export class Login extends React.Component<ILoginProps, ILoginState> {
           this.props.onLoginCallback();
         });
     } catch (err) {
+      this.logger.log(Login.name, "ERROR", LogLevel.ERROR, err);
       throw err;
     }
   }
 
   render() {
     return (
-      <div>
-        <form onSubmit={this.onSubmit}>
-          <label>Username</label>
+      <div className={styles.loginPage}>
+        <form onSubmit={this.onSubmit} className={styles.form}>
+          <div className={styles.title}>
+            <span className={styles.secondary}>LOG INTO</span>
+            <span className={styles.primary}>REMARC</span>
+          </div>
+          <label>USERNAME</label>
           <input
             type="text"
             onChange={e => {
               this.setState({ userName: e.target.value });
             }}
+            autoFocus
           />
+          <label>PASSWORD</label>
           <input
             type="password"
             onChange={e => {
               this.setState({ password: e.target.value });
             }}
           />
-          <input type="submit" onClick={this.onSubmit} />
+          <input type="submit" onClick={this.onSubmit} value="LOGIN" />
         </form>
       </div>
     );
