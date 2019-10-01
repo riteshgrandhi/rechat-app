@@ -1,6 +1,6 @@
 import React, { Fragment, ChangeEvent } from "react";
 import styles from "../styles/app.module.scss";
-import { IMarc, Logger, IDataResponse } from "@common";
+import { IMarc, Logger } from "@common";
 import {
   FaChevronDown,
   FaChevronRight,
@@ -10,7 +10,7 @@ import {
   FaHome
 } from "react-icons/fa";
 import { FiX, FiCheck } from "react-icons/fi";
-import { navigate, RouteComponentProps } from "@reach/router";
+import { navigate } from "@reach/router";
 import onClickOutside from "react-onclickoutside";
 import { Key } from "ts-keycode-enum";
 
@@ -148,7 +148,7 @@ class CollapseMenu extends React.Component<
     }
   }
 
-  private toggleMenu(event: React.MouseEvent) {
+  private toggleMenu() {
     let _flag = this.state.isOpen;
     _flag = !_flag;
     this.setState({
@@ -380,17 +380,11 @@ class EditMarcTitle extends React.Component<
       this.setState({ title: this._currentTitle, isEditing: false });
       return;
     }
+
     this.setState({
       isLoading: true
     });
-    // fetch(`${Config.serverUrl}/api/marcs/${this.props.marc.marcId}`, {
-    //   method: "put",
-    //   headers: {
-    //     Accept: "application/json, text/plain, */*",
-    //     "Content-Type": "application/json"
-    //   },
-    //   body: JSON.stringify({ title: _title })
-    // })
+
     this.apiService.axiosAuth
       .put(`/api/marcs/${this.props.marc.marcId}`, { title: _title })
       .then(() => {
