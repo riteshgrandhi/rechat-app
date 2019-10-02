@@ -25,6 +25,7 @@ body {
   flex-direction: column;
   background-color: #272727;
   .form {
+    width: 25vw;
     padding-top: 6%;
     display: flex;
     flex-direction: column;
@@ -46,20 +47,25 @@ body {
     }
 
     label {
-      text-align: center;
-      font-size: 1em;
+      text-align: left;
+      font-size: 1.1em;
       padding: 10px;
+      padding-left: 0;
       color: #aaaaaa;
+      &.signupLabel {
+        padding-top: 30px;
+      }
     }
 
     input[type="text"],
-    [type="password"] {
+    [type="password"],
+    [type="email"] {
       background-color: lighten($color: #272727, $amount: 10%);
       padding: 15px;
       border: none;
       border-radius: 3px;
       color: #cccccc;
-      font-size: 1.3em;
+      font-size: 1.1em;
       &:focus {
         outline: none;
       }
@@ -70,8 +76,16 @@ body {
       transition: all 0.5s ease;
     }
 
-    input[type="submit"] {
-      margin-top: 40px;
+    .errorMessage {
+      color: #e04a0e;
+      text-align: center;
+    }
+    .successMessage {
+      color: #41b883;
+    }
+
+    .loginButton,
+    .signupButton {
       color: #dddddd;
       font-size: 1.1em;
       border-radius: 4px;
@@ -79,8 +93,20 @@ body {
       padding: 15px;
       border: none;
       cursor: pointer;
-      &:hover {
-        background-color: lighten($color: #3dac7a, $amount: 10%);
+      &.loginButton {
+        margin-top: 40px;
+        &:hover {
+          background-color: lighten($color: #3dac7a, $amount: 10%);
+          color: lighten($color: #dddddd, $amount: 10%);
+        }
+      }
+      &.signupButton {
+        background-color: #666666;
+        margin-top: 20px;
+        &:hover {
+          background-color: lighten($color: #666666, $amount: 10%);
+          color: lighten($color: #dddddd, $amount: 10%);
+        }
       }
       transition: all 0.5s ease;
     }

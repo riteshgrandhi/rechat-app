@@ -9,6 +9,7 @@ import ProtectedRoute from "./auth/ProtectedRoute";
 import AuthService from "./services/AuthService";
 
 import styles from "./styles/app.module.scss";
+import { SignUp } from "./auth/SignUp";
 
 interface IAppProps {
   logger: Logger;
@@ -40,7 +41,7 @@ export default class App extends React.Component<IAppProps, IAppState> {
   }
 
   private onLogin() {
-    navigate("/", { replace: true });
+    navigate("/");
   }
 
   render() {
@@ -69,9 +70,13 @@ export default class App extends React.Component<IAppProps, IAppState> {
           authService={this.authService}
           logger={this.logger}
           onLoginCallback={() => {
-            console.log("logged in");
             this.onLogin();
           }}
+        />
+        <SignUp
+          path="/signup"
+          authService={this.authService}
+          logger={this.logger}
         />
       </Router>
     );

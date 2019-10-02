@@ -8,18 +8,16 @@ import { Config } from "../config/serverConfig";
 export function configureAuthMiddleware(passport: PassportStatic) {
   passport.use(
     new LocalStrategy(
-      { usernameField: "userName", passwordField: "password" },
-      async (userName, password, cb) => {
+      { usernameField: "email", passwordField: "password" },
+      async (email, password, cb) => {
         try {
           let user = await UserModel.findOne(
-            { userName: userName },
+            { email: email },
             { _id: false, __v: false }
           );
 
           if (!user) {
-            return cb({
-              errmsg: "Incorrect Email or Password"
-            });
+            return cb("Incorrect Email or Password");
           }
 
           let _cmpResult: boolean = await UserModel.schema.statics.comparePassword(
@@ -28,16 +26,11 @@ export function configureAuthMiddleware(passport: PassportStatic) {
           );
 
           if (!_cmpResult) {
-            return cb(
-              {
-                errmsg: "Incorrect Email or Password."
-              },
-              false
-            );
+            return cb("Incorrect Email or Password.", false);
           }
 
           let _user: IUser = {
-            userName: user.userName,
+            // userName: user.userName,
             firstName: user.firstName,
             lastName: user.lastName,
             email: user.email

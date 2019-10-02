@@ -20,7 +20,8 @@ export default class MarcsService {
   public async getMarcs(user: IUser): Promise<IMarc[]> {
     return MarcModel.find(
       {
-        "usersList.userName": user.userName,
+        // "usersList.userName": user.userName,
+        "usersList.email": user.email,
         "usersList.role": { $gte: Role.EDITOR }
       },
       { _id: false, document: false, "usersList._id": false, __v: false }
@@ -41,7 +42,8 @@ export default class MarcsService {
     if (user) {
       _query = {
         ..._query,
-        "usersList.userName": user.userName,
+        // "usersList.userName": user.userName,
+        "usersList.email": user.email,
         "usersList.role": { $gte: Role.EDITOR }
       };
     }
@@ -91,7 +93,8 @@ export default class MarcsService {
     return await MarcModel.updateOne(
       {
         marcId: marcId,
-        "usersList.userName": user.userName,
+        // "usersList.userName": user.userName,
+        "usersList.email": user.email,
         "usersList.role": { $gte: Role.OWNER }
       },
       { title: title }
@@ -108,7 +111,7 @@ export default class MarcsService {
       title: title,
       marcId: ShortId.generate(),
       document: [],
-      usersList: [{ userName: user.userName, role: Role.OWNER }]
+      usersList: [{ email: user.email, role: Role.OWNER }]
     } as IMarc);
 
     return await marcDocument.save().then((m: IMarcDocument) => {

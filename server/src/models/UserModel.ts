@@ -1,4 +1,4 @@
-import mongoose, { Schema, Document, HookSyncCallback } from "mongoose";
+import mongoose, { Schema, Document } from "mongoose";
 import { IUser } from "remarc-app-common";
 import * as argon2 from "argon2";
 import { randomBytes } from "crypto";
@@ -19,27 +19,23 @@ function validatePassword(password: string) {
 }
 
 const usersSchema = new Schema({
-  userName: {
-    type: String,
-    required: [true, "UserName is required"],
-    validate: {
-      validator: (userName: string) => {
-        if (userName.length < 5) {
-          return false;
-        }
-        if (!/^[a-z0-9]+$/i.test(userName)) {
-          return false;
-        }
-        return true;
-      },
-      msg: "UserName is not valid"
-    },
-    unique: true
-  },
-  password: {
-    type: String,
-    required: [true, "Password is required"]
-  },
+  // userName: {
+  //   type: String,
+  //   required: [true, "UserName is required"],
+  //   validate: {
+  //     validator: (userName: string) => {
+  //       if (userName.length < 5) {
+  //         return false;
+  //       }
+  //       if (!/^[a-z0-9]+$/i.test(userName)) {
+  //         return false;
+  //       }
+  //       return true;
+  //     },
+  //     msg: "UserName is not valid"
+  //   },
+  //   unique: true
+  // },
   email: {
     type: String,
     required: [true, "Email is required"],
@@ -57,6 +53,10 @@ const usersSchema = new Schema({
       },
       msg: "Email is not valid"
     }
+  },
+  password: {
+    type: String,
+    required: [true, "Password is required"]
   },
   firstName: { type: String, required: [true, "FirstName is required"] },
   lastName: { type: String }

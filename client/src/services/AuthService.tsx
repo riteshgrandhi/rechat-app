@@ -1,4 +1,4 @@
-import axios from "axios";
+import axios, { AxiosError } from "axios";
 import {
   IUser,
   ISignUpResponse,
@@ -23,41 +23,47 @@ export default class AuthService {
   }
 
   public async login(
-    userName: string,
+    email: string,
     password: string
   ): Promise<ILoginResponse> {
     try {
       return await axios
         .post<ILoginResponse>(`${Config.serverUrl}/auth/login`, {
-          userName: userName,
+          email: email,
           password: password
         })
         .then(resp => {
           if (!resp.data.token) {
-            throw "login failed";
+            throw resp;
           }
           let token = resp.data.token;
           sessionStorage.setItem("access_token", token);
           this.isAuthenticated = true;
           return resp.data;
+        })
+        .catch((err: AxiosError<ILoginResponse>) => {
+          throw err.response ? err.response.data : err;
         });
     } catch (err) {
-      this.logger.log(AuthService.name, "Login Response", LogLevel.ERROR);
+      this.logger.log(AuthService.name, "Login Response", LogLevel.ERROR, err);
       throw err;
     }
   }
 
-  public async signup(user: IUser, password: String): Promise<ISignUpResponse> {
+  public async signup(user: IUser, password: string): Promise<ISignUpResponse> {
     try {
       return await axios
         .post<ISignUpResponse>(`${Config.serverUrl}/auth/signup`, {
-          userName: user.userName,
-          password: password,
+          // userName: user.userName,
           email: user.email,
+          password: password,
           firstName: user.firstName,
           lastName: user.lastName
         })
-        .then(resp => resp.data);
+        .then(resp => resp.data)
+        .catch((err: AxiosError<ISignUpResponse>) => {
+          throw err.response ? err.response.data : err;
+        });
     } catch (err) {
       this.logger.log(AuthService.name, "Sign Up Response", LogLevel.ERROR);
       throw err;

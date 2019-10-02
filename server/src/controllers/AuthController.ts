@@ -46,7 +46,7 @@ export default class AuthController {
       }
 
       let _user: IUser = {
-        userName: user.userName,
+        // userName: user.userName,
         firstName: user.firstName,
         lastName: user.lastName,
         email: user.email
@@ -70,22 +70,20 @@ export default class AuthController {
 
   private async signup(req: Request, resp: TypedResponse<ISignUpResponse>) {
     try {
-      let userName: string = req.body.userName;
       let password: string = req.body.password;
       let firstName: string = req.body.firstName;
       let lastName: string = req.body.lastName;
       let email: string = req.body.email;
 
-      let user = await UserModel.findOne({ userName: userName });
+      let user = await UserModel.findOne({ email: email });
       if (user) {
         //already exists
         return resp.status(400).send({
-          error: `User with userName '${req.body.userName}' already exists`
+          error: `User with email '${req.body.email}' already exists`
         });
       }
       // let _hash = UserModel.schema.statics.getHashPassword(password);
       let _newUser: IUserDocument = new UserModel({
-        userName: userName,
         password: password,
         firstName: firstName,
         lastName: lastName,
@@ -95,7 +93,7 @@ export default class AuthController {
       try {
         let u = await _newUser.save();
         let _u: IUser = {
-          userName: u.userName,
+          // userName: u.userName,
           firstName: u.firstName,
           lastName: u.lastName,
           email: u.email
@@ -113,8 +111,8 @@ export default class AuthController {
       }
     } catch (err) {
       return resp
-        .send({ error: err.message || err, message: "Failed" })
-        .status(500);
+        .status(500)
+        .json({ error: err.message || err, message: "Failed" });
     }
   }
 }

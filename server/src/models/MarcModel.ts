@@ -8,7 +8,7 @@ const marcsSchema = new Schema({
   usersList: {
     type: [
       {
-        userName: { type: String, required: true },
+        email: { type: String, required: true },
         role: { type: Number, default: 0 }
       }
     ]

@@ -53,13 +53,13 @@ export interface IMarc {
   marcId: string;
   document: ICFRCharacter[];
   usersList: {
-    userName: string;
+    email: string;
     role: Role;
   }[];
 }
 
 export interface IUser {
-  userName: string;
+  // userName: string;
   email: string;
   firstName: string;
   lastName: string;

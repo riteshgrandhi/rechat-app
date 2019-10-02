@@ -1,6 +1,6 @@
 import React from "react";
 import AuthService from "../services/AuthService";
-import { Logger, LogLevel } from "@common";
+import { Logger, ILoginResponse } from "@common";
 import { RouteComponentProps, navigate } from "@reach/router";
 
 import styles from "./../styles/app.module.scss";
@@ -11,8 +11,9 @@ interface ILoginProps extends RouteComponentProps<{}> {
   onLoginCallback: () => void;
 }
 interface ILoginState {
-  userName: string;
+  email: string;
   password: string;
+  error: string;
 }
 
 /**
@@ -30,20 +31,37 @@ export class Login extends React.Component<ILoginProps, ILoginState> {
     this.logger = props.logger;
     this.authService = props.authService;
     this.onSubmit = this.onSubmit.bind(this);
+    this.state = {
+      email: "",
+      password: "",
+      error: ""
+    };
   }
 
   private async onSubmit(event: React.MouseEvent | React.FormEvent) {
     event.preventDefault();
-    try {
-      this.authService
-        .login(this.state.userName, this.state.password)
-        .then(() => {
-          this.props.onLoginCallback();
-        });
-    } catch (err) {
-      this.logger.log(Login.name, "ERROR", LogLevel.ERROR, err);
-      throw err;
+    if (!this.state.email) {
+      this.setState({
+        error: "Please enter a valid email"
+      });
+      return;
     }
+    if (!this.state.password) {
+      this.setState({
+        error: "Please enter a password"
+      });
+      return;
+    }
+    this.authService
+      .login(this.state.email, this.state.password)
+      .then(() => {
+        this.props.onLoginCallback();
+      })
+      .catch((err: ILoginResponse) => {
+        this.setState({
+          error: err.error || err.message
+        });
+      });
   }
 
   render() {
@@ -54,11 +72,11 @@ export class Login extends React.Component<ILoginProps, ILoginState> {
             <span className={styles.secondary}>LOG INTO</span>
             <span className={styles.primary}>REMARC</span>
           </div>
-          <label>USERNAME</label>
+          <label>EMAIL</label>
           <input
             type="text"
             onChange={e => {
-              this.setState({ userName: e.target.value });
+              this.setState({ email: e.target.value, error: "" });
             }}
             autoFocus
           />
@@ -66,10 +84,27 @@ export class Login extends React.Component<ILoginProps, ILoginState> {
           <input
             type="password"
             onChange={e => {
-              this.setState({ password: e.target.value });
+              this.setState({ password: e.target.value, error: "" });
             }}
           />
-          <input type="submit" onClick={this.onSubmit} value="LOGIN" />
+          {this.state.error && (
+            <label className={styles.errorMessage}>{this.state.error}</label>
+          )}
+          <input
+            type="submit"
+            className={styles.loginButton}
+            onClick={this.onSubmit}
+            value="LOGIN"
+          />
+          {/* <label className={styles.signupLabel}>New User?</label> */}
+          <input
+            type="button"
+            className={styles.signupButton}
+            onClick={() => {
+              navigate("/signup");
+            }}
+            value="SIGN UP"
+          />
         </form>
       </div>
     );
