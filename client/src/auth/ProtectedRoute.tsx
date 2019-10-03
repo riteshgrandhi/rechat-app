@@ -1,23 +1,22 @@
 import React, { Fragment } from "react";
-import AuthService from "../services/AuthService";
 import { Redirect, RouteComponentProps } from "@reach/router";
+import ServiceContext, { IServiceContext } from "../services/ServiceContext";
 
 interface IProtectedRouteProps extends RouteComponentProps<{}> {
   redirectPath: string;
-  authService: AuthService;
 }
 
 export default class ProtectedRoute extends React.Component<
   IProtectedRouteProps,
   { isAuthenticated: boolean }
 > {
-  private authService: AuthService;
+  static contextType = ServiceContext;
+  public context!: React.ContextType<typeof ServiceContext>;
 
-  constructor(props: IProtectedRouteProps) {
-    super(props);
-    this.authService = props.authService;
+  constructor(props: IProtectedRouteProps, context: IServiceContext) {
+    super(props, context);
     this.state = {
-      isAuthenticated: this.authService.isAuthenticated
+      isAuthenticated: context.authService.isAuthenticated
     };
   }
 

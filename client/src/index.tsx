@@ -2,26 +2,15 @@ import React from "react";
 import ReactDOM from "react-dom";
 import * as serviceWorker from "./serviceWorker";
 
-import { Logger, LogLevel } from "@common";
-
-import { Config } from "./config/appConfig";
-import AuthService from "./services/AuthService";
 import App from "./App";
-import ApiService from "./services/ApiService";
+import ServiceContext, { defaultContextValue } from "./services/ServiceContext";
 
 (async () => {
   try {
-    let _level: LogLevel = LogLevel[Config.logLevel as keyof typeof LogLevel];
-    let _logger = new Logger(_level);
-    let _authService = new AuthService(_logger);
-    let _apiService = new ApiService(_logger, _authService);
-
     ReactDOM.render(
-      <App
-        logger={_logger}
-        authService={_authService}
-        apiService={_apiService}
-      />,
+      <ServiceContext.Provider value={defaultContextValue}>
+        <App />
+      </ServiceContext.Provider>,
       document.getElementById("root")
     );
   } catch (err) {

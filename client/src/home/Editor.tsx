@@ -1,7 +1,7 @@
 import React, { Fragment } from "react";
 import io from "socket.io-client";
 import styles from "../styles/app.module.scss";
-import { RouteComponentProps, navigate } from "@reach/router";
+import { navigate } from "@reach/router";
 import { Config } from "../config/appConfig";
 import {
   ICharOpSequence,
@@ -11,13 +11,12 @@ import {
   IClientJoinData,
   IChangeEventData,
   IMarc,
-  Logger,
   LogLevel,
   IDataResponse
 } from "@common";
-import ApiService from "../services/ApiService";
 import { Key } from "ts-keycode-enum";
 import getCaretCoordinates from "textarea-caret";
+import ServiceContext from "../services/ServiceContext";
 
 interface IEditorState {
   document: string;
@@ -28,13 +27,12 @@ interface IEditorState {
 // interface IEditorProps extends RouteComponentProps<{ marcId: string }> {
 interface IEditorProps {
   marcId: string;
-  logger: Logger;
-  apiService: ApiService;
 }
 
 class Editor extends React.Component<IEditorProps, IEditorState> {
-  private logger: Logger;
-  private apiService: ApiService;
+  static contextType = ServiceContext;
+  public context!: React.ContextType<typeof ServiceContext>;
+
   private socket: SocketIOClient.Socket;
   private CFRDocument: CFRString;
   private textareaElem: HTMLTextAreaElement;
@@ -46,9 +44,6 @@ class Editor extends React.Component<IEditorProps, IEditorState> {
     this.textareaElem = {} as HTMLTextAreaElement;
     this.caretPosition = 0;
 
-    let _level: LogLevel = LogLevel[Config.logLevel as keyof typeof LogLevel];
-    this.logger = this.props.logger;
-    this.apiService = props.apiService;
     this.checkCaret = this.checkCaret.bind(this);
     this.addCaretListeners = this.addCaretListeners.bind(this);
     this.onServerTextUpdate = this.onServerTextUpdate.bind(this);
@@ -71,7 +66,7 @@ class Editor extends React.Component<IEditorProps, IEditorState> {
     }
     this.getMarcById(this.props.marcId)
       .then((_marc: IMarc) => {
-        this.CFRDocument = new CFRString(this.logger, _marc.document);
+        this.CFRDocument = new CFRString(this.context.logger, _marc.document);
         this.setState(
           { isLoading: false, document: this.CFRDocument.getText() },
           () => {
@@ -97,7 +92,7 @@ class Editor extends React.Component<IEditorProps, IEditorState> {
   }
 
   componentWillUnmount() {
-    this.logger.log(Editor.name, "Disconnecting..", LogLevel.VERBOSE);
+    this.context.logger.log(Editor.name, "Disconnecting..", LogLevel.VERBOSE);
     if (this.socket.close) {
       this.socket.close();
     }
@@ -108,7 +103,7 @@ class Editor extends React.Component<IEditorProps, IEditorState> {
       throw "Id Cannot be null";
     }
     this.socket.on("connect", (data: any) => {
-      this.logger.log(Editor.name, "Connected", LogLevel.VERBOSE, data);
+      this.context.logger.log(Editor.name, "Connected", LogLevel.VERBOSE, data);
     });
 
     this.socket.on(Events.SERVER_TEXT_UPDATE, this.onServerTextUpdate);
@@ -122,7 +117,9 @@ class Editor extends React.Component<IEditorProps, IEditorState> {
 
   private async getMarcById(marcId: string): Promise<IMarc> {
     try {
-      let res: IDataResponse<IMarc> = await this.apiService.axiosAuth
+      let res: IDataResponse<
+        IMarc
+      > = await this.context.apiService.axiosAuth
         .get<IDataResponse<IMarc>>(`/api/marcs/${marcId}`)
         .then(r => r.data);
       if (!res.data) {
@@ -130,14 +127,19 @@ class Editor extends React.Component<IEditorProps, IEditorState> {
       }
       return res.data;
     } catch (err) {
-      this.logger.log(Editor.name, "Failed to fetch", LogLevel.ERROR, err);
+      this.context.logger.log(
+        Editor.name,
+        "Failed to fetch",
+        LogLevel.ERROR,
+        err
+      );
       throw err;
     }
   }
 
   private onServerTextUpdate(data: IChangeEventData) {
     let opSequence: ICharOpSequence = data.opSequence;
-    this.logger.log(
+    this.context.logger.log(
       Editor.name,
       Events.SERVER_TEXT_UPDATE,
       LogLevel.VERBOSE,
@@ -331,7 +333,7 @@ class Editor extends React.Component<IEditorProps, IEditorState> {
     if (!this.props.marcId) {
       throw "Id Cannot be null";
     }
-    this.logger.log(
+    this.context.logger.log(
       Editor.name,
       `Sending ${Events.CLIENT_TEXT_UPDATE}`,
       LogLevel.VERBOSE,
@@ -374,7 +376,7 @@ class Editor extends React.Component<IEditorProps, IEditorState> {
         userId: this.socket.id,
         caret: caretCoordinates
       };
-      this.logger.log(
+      this.context.logger.log(
         Editor.name,
         `Caret change to ${newPos}`,
         LogLevel.VERBOSE,

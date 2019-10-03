@@ -1,14 +1,11 @@
 import React from "react";
-import AuthService from "../services/AuthService";
-import { Logger, IUser, ISignUpResponse } from "@common";
+import { IUser, ISignUpResponse } from "@common";
 import { RouteComponentProps, Link, navigate } from "@reach/router";
 
 import styles from "./../styles/app.module.scss";
+import ServiceContext from "../services/ServiceContext";
 
-interface ISignUpProps extends RouteComponentProps<{}> {
-  logger: Logger;
-  authService: AuthService;
-}
+interface ISignUpProps extends RouteComponentProps<{}> {}
 interface ISignUpState {
   userDetails: IUser;
   password: string;
@@ -21,14 +18,14 @@ interface ISignUpState {
  * Login page component
  */
 export class SignUp extends React.Component<ISignUpProps, ISignUpState> {
-  private authService: AuthService;
+  static contextType = ServiceContext;
+  public context!: React.ContextType<typeof ServiceContext>;
   /**
    * constructor
    */
   constructor(props: ISignUpProps) {
     super(props);
 
-    this.authService = props.authService;
     this.onSubmit = this.onSubmit.bind(this);
     this.state = {
       isSuccess: false,
@@ -75,7 +72,7 @@ export class SignUp extends React.Component<ISignUpProps, ISignUpState> {
     if (!this.validateForm()) {
       return;
     }
-    this.authService
+    this.context.authService
       .signup(this.state.userDetails, this.state.password)
       .then(() => {
         this.setState({ isSuccess: true });

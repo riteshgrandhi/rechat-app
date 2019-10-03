@@ -15,12 +15,12 @@ import onClickOutside from "react-onclickoutside";
 import { Key } from "ts-keycode-enum";
 
 import ApiService from "../services/ApiService";
+import AuthService from "../services/AuthService";
+import ServiceContext from "../services/ServiceContext";
 
 interface ISideBarProps {
   currentMarcId?: string;
   marcs: IMarc[];
-  logger: Logger;
-  apiService: ApiService;
   refreshCallback: () => void;
 }
 
@@ -30,12 +30,12 @@ interface ISideBarState {
 }
 
 export class SideBar extends React.Component<ISideBarProps, ISideBarState> {
-  private apiService: ApiService;
+  static contextType = ServiceContext;
+  public context!: React.ContextType<typeof ServiceContext>;
 
   constructor(props: ISideBarProps) {
     super(props);
 
-    this.apiService = props.apiService;
     this.onSelectCallback = this.onSelectCallback.bind(this);
     this.state = {
       marcs: props.marcs,
@@ -78,15 +78,22 @@ export class SideBar extends React.Component<ISideBarProps, ISideBarState> {
           }}
         >
           <div className={styles.title}>
-            <FaHome /> <span>Home</span>
+            <FaHome /> <span>Home</span>{" "}
           </div>
+          <button
+            className={`${styles.sideBarButton} ${styles.logoutButton}`}
+            onClick={() => {
+              this.context.authService.logout();
+            }}
+          >
+            LOGOUT
+          </button>
         </div>
         {this.state.currentMarc && (
           <Fragment>
             <hr />
             <div className={styles.marcInfo}>
               <EditMarcTitleOutClick
-                apiService={this.apiService}
                 refreshCallback={this.props.refreshCallback}
                 marc={this.state.currentMarc}
               ></EditMarcTitleOutClick>
@@ -96,7 +103,6 @@ export class SideBar extends React.Component<ISideBarProps, ISideBarState> {
         <hr />
         <CollapseMenu
           marcs={this.state.marcs}
-          apiService={this.apiService}
           selectedId={
             this.state.currentMarc ? this.state.currentMarc.marcId : ""
           }
@@ -111,7 +117,6 @@ export class SideBar extends React.Component<ISideBarProps, ISideBarState> {
 interface ICollapseMenuProps {
   marcs: IMarc[];
   selectedId: string;
-  apiService: ApiService;
   refreshCallback: () => void;
   onSelectCallback: (selectedMarcId?: string) => void;
 }
@@ -172,7 +177,6 @@ class CollapseMenu extends React.Component<
         </div>
         <div className={this.state.isOpen ? styles.open : styles.closed}>
           <AddMarcTitleOutClick
-            apiService={this.props.apiService}
             refreshCallback={() => {
               this.setState(
                 {
@@ -212,7 +216,6 @@ class CollapseMenu extends React.Component<
 }
 
 interface IAddEditMarcProps {
-  apiService: ApiService;
   refreshCallback: () => void;
   marc?: IMarc;
 }
@@ -227,10 +230,12 @@ class AddMarcTitle extends React.Component<
   IAddEditMarcProps,
   IAddEditMarcState
 > {
-  private apiService: ApiService;
+  
+  static contextType = ServiceContext;
+  public context!: React.ContextType<typeof ServiceContext>;
+
   constructor(props: IAddEditMarcProps) {
     super(props);
-    this.apiService = props.apiService;
     this.state = {
       isEditing: false,
       isLoading: false,
@@ -254,7 +259,7 @@ class AddMarcTitle extends React.Component<
       isLoading: true,
       title: ""
     });
-    this.apiService.axiosAuth
+    this.context.apiService.axiosAuth
       .post("/api/marcs", { title: _title })
       .then(() => {
         this.setState(
@@ -347,12 +352,12 @@ class EditMarcTitle extends React.Component<
   IAddEditMarcProps,
   IAddEditMarcState
 > {
-  private apiService: ApiService;
   private _currentTitle: string;
+  static contextType = ServiceContext;
+  public context!: React.ContextType<typeof ServiceContext>;
 
   constructor(props: IAddEditMarcProps) {
     super(props);
-    this.apiService = props.apiService;
     this.state = {
       isEditing: false,
       isLoading: false,
@@ -385,7 +390,7 @@ class EditMarcTitle extends React.Component<
       isLoading: true
     });
 
-    this.apiService.axiosAuth
+    this.context.apiService.axiosAuth
       .put(`/api/marcs/${this.props.marc.marcId}`, { title: _title })
       .then(() => {
         this.setState(

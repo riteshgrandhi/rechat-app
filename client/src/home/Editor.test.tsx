@@ -1,17 +1,17 @@
 import React from "react";
 import ReactDOM from "react-dom";
 import Editor from "./Editor";
-import { Logger, LogLevel } from "@common";
-import ApiService from "../services/ApiService";
-import AuthService from "../services/AuthService";
+import ServiceContext, {
+  defaultContextValue
+} from "../services/ServiceContext";
 
 it("renders without crashing", () => {
   const div = document.createElement("div");
-  const logger = new Logger(LogLevel.VERBOSE);
-  const authService = new AuthService(logger);
-  const apiService = new ApiService(logger, authService);
+
   ReactDOM.render(
-    <Editor marcId="test" logger={logger} apiService={apiService} />,
+    <ServiceContext.Provider value={defaultContextValue}>
+      <Editor marcId="test" />
+    </ServiceContext.Provider>,
     div
   );
   ReactDOM.unmountComponentAtNode(div);

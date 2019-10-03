@@ -217,6 +217,10 @@ body {
     &.cancel:hover {
       background-color: lighten($color: #333333, $amount: 10%);
     }
+    &.logoutButton {
+      border-radius: 3px;
+      font-size: 0.85em;
+    }
     transition: all 0.5s ease;
   }
 

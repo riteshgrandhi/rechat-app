@@ -1,28 +1,24 @@
 import React, { Fragment } from "react";
-import { RouteComponentProps, Location } from "@reach/router";
+import { RouteComponentProps } from "@reach/router";
 import styles from "./../styles/app.module.scss";
 import { SideBar } from "./SideBar";
-import { Logger, IMarc, IDataResponse, LogLevel } from "@common";
-import ApiService from "../services/ApiService";
+import { IMarc, IDataResponse, LogLevel } from "@common";
 import Editor from "./Editor";
+import ServiceContext from "../services/ServiceContext";
 
 interface IHomeProps extends RouteComponentProps<{ currentMarcId: string }> {
   marcs: IMarc[];
-  logger: Logger;
-  apiService: ApiService;
 }
 interface IHomeState {
   marcs: IMarc[];
 }
 
 export default class Home extends React.Component<IHomeProps, IHomeState> {
-  private logger: Logger;
-  private apiService: ApiService;
+  static contextType = ServiceContext;
+  public context!: React.ContextType<typeof ServiceContext>;
 
   constructor(props: IHomeProps) {
     super(props);
-    this.logger = props.logger;
-    this.apiService = props.apiService;
     this.state = { marcs: props.marcs };
 
     this.getMarcs = this.getMarcs.bind(this);
@@ -38,14 +34,14 @@ export default class Home extends React.Component<IHomeProps, IHomeState> {
       let marcs: IMarc[] = await this.getMarcs();
       this.setState({ marcs: marcs });
     } catch (err) {
-      this.logger.log(Home.name, "Error", LogLevel.ERROR, err);
+      this.context.logger.log(Home.name, "Error", LogLevel.ERROR, err);
       throw err;
     }
   }
 
   private async getMarcs(): Promise<IMarc[]> {
     try {
-      let res: IDataResponse<IMarc[]> = await this.apiService.axiosAuth
+      let res: IDataResponse<IMarc[]> = await this.context.apiService.axiosAuth
         .get<IDataResponse<IMarc[]>>("/api/marcs")
         .then(r => r.data)
         .catch(err => {
@@ -54,7 +50,7 @@ export default class Home extends React.Component<IHomeProps, IHomeState> {
       if (!res.data) {
         throw res.error || "'data' is missing";
       }
-      this.logger.log(Home.name, "Response", LogLevel.VERBOSE, res);
+      this.context.logger.log(Home.name, "Response", LogLevel.VERBOSE, res);
       return res.data;
     } catch (err) {
       throw `Failed to fetch: ${err}`;
@@ -72,16 +68,12 @@ export default class Home extends React.Component<IHomeProps, IHomeState> {
       <Fragment>
         <SideBar
           marcs={this.state.marcs}
-          logger={this.logger}
-          apiService={this.apiService}
           refreshCallback={this.refreshMarcs}
           currentMarcId={this.props.currentMarcId}
         />
         {this.props.currentMarcId ? (
           <Editor
             key={this.props.currentMarcId}
-            logger={this.logger}
-            apiService={this.apiService}
             marcId={this.props.currentMarcId}
           />
         ) : (

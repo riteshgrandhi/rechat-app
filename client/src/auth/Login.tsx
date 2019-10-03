@@ -1,13 +1,11 @@
 import React from "react";
-import AuthService from "../services/AuthService";
-import { Logger, ILoginResponse } from "@common";
+import { ILoginResponse } from "@common";
 import { RouteComponentProps, navigate } from "@reach/router";
 
 import styles from "./../styles/app.module.scss";
+import ServiceContext, { IServiceContext } from "../services/ServiceContext";
 
 interface ILoginProps extends RouteComponentProps<{}> {
-  logger: Logger;
-  authService: AuthService;
   onLoginCallback: () => void;
 }
 interface ILoginState {
@@ -20,16 +18,18 @@ interface ILoginState {
  * Login page component
  */
 export class Login extends React.Component<ILoginProps, ILoginState> {
-  private logger: Logger;
-  private authService: AuthService;
+  static contextType = ServiceContext;
+  public context!: React.ContextType<typeof ServiceContext>;
+
   /**
    * constructor
    */
-  constructor(props: ILoginProps) {
-    super(props);
+  constructor(props: ILoginProps, context: IServiceContext) {
+    super(props, context);
 
-    this.logger = props.logger;
-    this.authService = props.authService;
+    if (context.authService.isAuthenticated) {
+      context.authService.logout(true);
+    }
     this.onSubmit = this.onSubmit.bind(this);
     this.state = {
       email: "",
@@ -52,7 +52,7 @@ export class Login extends React.Component<ILoginProps, ILoginState> {
       });
       return;
     }
-    this.authService
+    this.context.authService
       .login(this.state.email, this.state.password)
       .then(() => {
         this.props.onLoginCallback();

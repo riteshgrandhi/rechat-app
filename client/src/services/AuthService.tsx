@@ -22,10 +22,7 @@ export default class AuthService {
     return sessionStorage.getItem("access_token");
   }
 
-  public async login(
-    email: string,
-    password: string
-  ): Promise<ILoginResponse> {
+  public async login(email: string, password: string): Promise<ILoginResponse> {
     try {
       return await axios
         .post<ILoginResponse>(`${Config.serverUrl}/auth/login`, {
@@ -67,6 +64,13 @@ export default class AuthService {
     } catch (err) {
       this.logger.log(AuthService.name, "Sign Up Response", LogLevel.ERROR);
       throw err;
+    }
+  }
+
+  public logout(noReload?: boolean): void {
+    sessionStorage.clear();
+    if (!noReload) {
+      window.location.reload();
     }
   }
 }
