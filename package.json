@@ -3,6 +3,9 @@
   "version": "0.1.0",
   "description": "Test Realtime Markdown Editor Web App",
   "scripts": {
+    "install:client": "cd client && npm install",
+    "install:server": "cd server && npm install",
+    "install-all": "npm install && npm run install:client && npm run install:server",
     "start": "concurrently \"cd server && npm run debug:server\"  \"cd client && npm run debug:client\" \"lt -p 3000 -s remarc -l localhost\""
   },
   "author": "",
