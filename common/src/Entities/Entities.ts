@@ -37,7 +37,7 @@ export interface IComparisonResult {
 
 export interface ICaretEventData {
   marcId: string;
-  userId: string;
+  user: IUser;
   caret: { height: number; left: number; top: number };
 }
 export interface IChangeEventData {

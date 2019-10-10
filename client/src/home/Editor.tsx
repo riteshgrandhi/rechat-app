@@ -12,11 +12,12 @@ import {
   IChangeEventData,
   IMarc,
   LogLevel,
-  IDataResponse
+  IDataResponse,
+  IUser
 } from "@common";
 import { Key } from "ts-keycode-enum";
 import getCaretCoordinates from "textarea-caret";
-import ServiceContext from "../services/ServiceContext";
+import ServiceContext, { IServiceContext } from "../services/ServiceContext";
 
 interface IEditorState {
   document: string;
@@ -32,17 +33,19 @@ interface IEditorProps {
 class Editor extends React.Component<IEditorProps, IEditorState> {
   static contextType = ServiceContext;
   public context!: React.ContextType<typeof ServiceContext>;
+  private currentUser: IUser;
 
   private socket: SocketIOClient.Socket;
   private CFRDocument: CFRString;
   private textareaElem: HTMLTextAreaElement;
   private caretPosition: number;
 
-  constructor(props: IEditorProps) {
+  constructor(props: IEditorProps, context: IServiceContext) {
     super(props);
 
     this.textareaElem = {} as HTMLTextAreaElement;
     this.caretPosition = 0;
+    this.currentUser = context.authService.getCurrentUser();
 
     this.checkCaret = this.checkCaret.bind(this);
     this.addCaretListeners = this.addCaretListeners.bind(this);
@@ -232,7 +235,7 @@ class Editor extends React.Component<IEditorProps, IEditorState> {
           text = val.slice(_s, _end);
           deleteOpSequence = this.CFRDocument.deleteString({
             text: text,
-            userId: this.socket.id,
+            userId: this.currentUser.email, //this.socket.id,
             globalPos: _s
           });
           break;
@@ -241,7 +244,7 @@ class Editor extends React.Component<IEditorProps, IEditorState> {
           text = val.slice(_start, _start == _end ? _end + 1 : _end);
           deleteOpSequence = this.CFRDocument.deleteString({
             text: text,
-            userId: this.socket.id,
+            userId: this.currentUser.email, //this.socket.id,
             globalPos: _start
           });
           break;
@@ -251,7 +254,7 @@ class Editor extends React.Component<IEditorProps, IEditorState> {
             text = val.slice(_start, _end);
             deleteOpSequence = this.CFRDocument.deleteString({
               text: text,
-              userId: this.socket.id,
+              userId: this.currentUser.email, //this.socket.id,
               globalPos: _start
             });
           }
@@ -262,7 +265,7 @@ class Editor extends React.Component<IEditorProps, IEditorState> {
           }
           insertOpSequence = this.CFRDocument.insertString({
             text: text,
-            userId: this.socket.id,
+            userId: this.currentUser.email, //this.socket.id,
             globalPos: _start
           });
         }
@@ -289,7 +292,7 @@ class Editor extends React.Component<IEditorProps, IEditorState> {
       text = val.slice(_start, _end);
       deleteOpSequence = this.CFRDocument.deleteString({
         text: text,
-        userId: this.socket.id,
+        userId: this.currentUser.email, //this.socket.id,
         globalPos: _start
       });
     }
@@ -297,7 +300,7 @@ class Editor extends React.Component<IEditorProps, IEditorState> {
     text = e.clipboardData.getData("text/plain");
     let insertOpSequence: ICharOpSequence = this.CFRDocument.insertString({
       text: text,
-      userId: this.socket.id,
+      userId: this.currentUser.email, //this.socket.id,
       globalPos: _start
     });
 
@@ -321,7 +324,7 @@ class Editor extends React.Component<IEditorProps, IEditorState> {
 
     opSequence = this.CFRDocument.deleteString({
       text: text,
-      userId: this.socket.id,
+      userId: this.currentUser.email, //this.socket.id,
       globalPos: _start
     });
 
@@ -347,8 +350,12 @@ class Editor extends React.Component<IEditorProps, IEditorState> {
   }
 
   private updateUserCarets(data: ICaretEventData) {
-    let _carets = this.state.floatingCarets;
-    let i = _carets.findIndex(c => c.userId == data.userId);
+    let _carets = [
+      ...this.state.floatingCarets.filter(
+        c => c.user.email != this.currentUser.email
+      )
+    ];
+    let i = _carets.findIndex(c => c.user.email == data.user.email);
     if (i >= 0) {
       _carets[i].caret = data.caret;
     } else {
@@ -373,7 +380,7 @@ class Editor extends React.Component<IEditorProps, IEditorState> {
       );
       let data: ICaretEventData = {
         marcId: this.props.marcId,
-        userId: this.socket.id,
+        user: this.currentUser, //this.socket.id,
         caret: caretCoordinates
       };
       this.context.logger.log(
@@ -403,16 +410,17 @@ class Editor extends React.Component<IEditorProps, IEditorState> {
       <Fragment>
         {!this.state.isLoading && (
           <div className={styles.editor}>
-            {this.state.floatingCarets.map(userCaret => (
+            {this.state.floatingCarets.map(caret => (
               <span
+                key={caret.user.email}
+                className={styles.caret}
                 style={{
-                  position: "absolute",
-                  left: this.textareaElem.offsetLeft + userCaret.caret.left,
-                  top: this.textareaElem.offsetTop + userCaret.caret.top + 20,
+                  left: this.textareaElem.offsetLeft + caret.caret.left,
+                  top: this.textareaElem.offsetTop + caret.caret.top + 20,
                   backgroundColor: "black"
                 }}
               >
-                {userCaret.userId}
+                {caret.user.firstName} {caret.user.lastName}
               </span>
             ))}
             <textarea

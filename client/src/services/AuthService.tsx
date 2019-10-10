@@ -30,11 +30,13 @@ export default class AuthService {
           password: password
         })
         .then(resp => {
-          if (!resp.data.token) {
+          if (!resp.data.token || !resp.data.user) {
             throw resp;
           }
           let token = resp.data.token;
+          let user = resp.data.user;
           sessionStorage.setItem("access_token", token);
+          sessionStorage.setItem("user", JSON.stringify(user));
           this.isAuthenticated = true;
           return resp.data;
         })
@@ -72,5 +74,14 @@ export default class AuthService {
     if (!noReload) {
       window.location.reload();
     }
+  }
+
+  public getCurrentUser(): IUser {
+    let userStr = sessionStorage.getItem("user");
+    if (!userStr) {
+      throw "User details not found";
+    }
+    let user: IUser = JSON.parse(userStr) as IUser;
+    return user;
   }
 }

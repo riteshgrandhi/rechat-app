@@ -25,22 +25,3 @@ const ServiceContext = React.createContext<IServiceContext>(
   defaultContextValue
 );
 export default ServiceContext;
-// export const ServiceContextConsumer: FunctionComponent = ({
-//   children
-// }) => {
-//   return <ServiceContext.Consumer>{value => children}</ServiceContext.Consumer>;
-// };
-// export function withAppContext<
-//   P extends { appContext?: ServiceContextProps },
-//   R = Omit<P, "appContext">
-// >(
-//   Component: React.ComponentClass<R> | React.StatelessComponent<R>
-// ): React.SFC<R> {
-//   return function BoundComponent(props: R) {
-//     return (
-//       <ServiceContext.Consumer>
-//         {value => <Component {...props} appContext={value} />}
-//       </ServiceContext.Consumer>
-//     );
-//   };
-// }
