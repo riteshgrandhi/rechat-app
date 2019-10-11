@@ -77,7 +77,7 @@ class Editor extends React.Component<IEditorProps, IEditorState> {
               this.textareaElem.selectionStart = this.state.document.length;
             }
             this.socket = io(Config.serverUrl, {
-              // transports: ["websocket"]
+              query: "token=" + this.context.authService.getToken()
             });
             this.initSocketListeners();
           }
@@ -107,6 +107,12 @@ class Editor extends React.Component<IEditorProps, IEditorState> {
     }
     this.socket.on("connect", (data: any) => {
       this.context.logger.log(Editor.name, "Connected", LogLevel.VERBOSE, data);
+    });
+    this.socket.on("error", (error: any) => {
+      this.context.logger.log(Editor.name, "Error", LogLevel.ERROR, error);
+      if (error.type == "UnauthorizedError" || error.code == "invalid_token") {
+        this.context.authService.logout();
+      }
     });
 
     this.socket.on(Events.SERVER_TEXT_UPDATE, this.onServerTextUpdate);

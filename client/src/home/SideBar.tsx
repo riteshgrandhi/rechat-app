@@ -153,7 +153,7 @@ class CollapseMenu extends React.Component<
     }
   }
 
-  private toggleMenu() {
+  private toggleMenu(event: React.MouseEvent) {
     let _flag = this.state.isOpen;
     _flag = !_flag;
     this.setState({
@@ -230,7 +230,6 @@ class AddMarcTitle extends React.Component<
   IAddEditMarcProps,
   IAddEditMarcState
 > {
-  
   static contextType = ServiceContext;
   public context!: React.ContextType<typeof ServiceContext>;
 
