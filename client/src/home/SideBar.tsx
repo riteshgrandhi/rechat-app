@@ -1,21 +1,19 @@
 import React, { Fragment, ChangeEvent } from "react";
 import styles from "../styles/app.module.scss";
-import { IMarc, Logger } from "@common";
+import { IMarc } from "@common";
 import {
   FaChevronDown,
   FaChevronRight,
   FaFile,
   FaPlus,
   FaPen,
-  FaHome
+  FaHome,
+  FaUser
 } from "react-icons/fa";
 import { FiX, FiCheck } from "react-icons/fi";
 import { navigate } from "@reach/router";
 import onClickOutside from "react-onclickoutside";
 import { Key } from "ts-keycode-enum";
-
-import ApiService from "../services/ApiService";
-import AuthService from "../services/AuthService";
 import ServiceContext from "../services/ServiceContext";
 
 interface ISideBarProps {
@@ -67,8 +65,25 @@ export class SideBar extends React.Component<ISideBarProps, ISideBarState> {
   }
 
   render() {
+    let currentUser = this.context.authService.getCurrentUser();
     return (
       <div className={styles.infoPanel}>
+        <div className={styles.userDetails}>
+          <span className={styles.displayName}>
+            <FaUser />
+            <span>
+              {currentUser.firstName} {currentUser.lastName}
+            </span>
+          </span>
+          <button
+            className={`${styles.sideBarButton} ${styles.logoutButton}`}
+            onClick={() => {
+              this.context.authService.logout();
+            }}
+          >
+            LOGOUT
+          </button>
+        </div>
         <div
           className={`${styles.menuItem} ${styles.main}`}
           onClick={() => {
@@ -80,14 +95,6 @@ export class SideBar extends React.Component<ISideBarProps, ISideBarState> {
           <div className={styles.title}>
             <FaHome /> <span>Home</span>{" "}
           </div>
-          <button
-            className={`${styles.sideBarButton} ${styles.logoutButton}`}
-            onClick={() => {
-              this.context.authService.logout();
-            }}
-          >
-            LOGOUT
-          </button>
         </div>
         {this.state.currentMarc && (
           <Fragment>
