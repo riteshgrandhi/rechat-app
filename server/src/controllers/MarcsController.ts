@@ -1,8 +1,14 @@
-import { Router, Request } from "express";
-import { Logger, IMarc, IUser } from "remarc-app-common";
+import { Router, Request, response } from "express";
+import {
+  Logger,
+  IMarc,
+  IUser,
+  IDataResponse,
+  IUpdateUserData,
+  IUpdateUserResponse
+} from "remarc-app-common";
 
 import { TypedResponse } from "../helpers/Helpers";
-import { IDataResponse } from "remarc-app-common";
 import MarcsService from "../services/MarcsService";
 
 export default class MarcsController {
@@ -19,16 +25,22 @@ export default class MarcsController {
 
   private initRoutes() {
     this.router.get(this.path, (req, resp) => {
-      this.getMarcs(req, resp);
+      return this.getMarcs(req, resp);
     });
     this.router.get(`${this.path}/:id`, (req, resp) => {
-      this.getMarcById(req, resp);
+      return this.getMarcById(req, resp);
     });
     this.router.post(`${this.path}`, (req, resp) => {
-      this.createMarc(req, resp);
+      return this.createMarc(req, resp);
     });
     this.router.put(`${this.path}/:id`, (req, resp) => {
-      this.editMarc(req, resp);
+      return this.editMarc(req, resp);
+    });
+    this.router.delete(`${this.path}/:id`, (req, resp) => {
+      return this.deleteMarc(req, resp);
+    });
+    this.router.post(`${this.path}/:id/users`, (req, resp) => {
+      return this.updateMarcUsersList(req, resp);
     });
   }
 
@@ -112,6 +124,46 @@ export default class MarcsController {
       );
 
       return resp.json({ message: "Success" });
+    } catch (err) {
+      return resp.status(500).json({ error: err, message: "Failed" });
+    }
+  }
+
+  private async deleteMarc(
+    req: Request,
+    resp: TypedResponse<IDataResponse<{}>>
+  ) {
+    try {
+      await this.marcsService.deleteMarc(req.params.id);
+      return resp.json({ message: "Success" });
+    } catch (err) {
+      return resp.status(500).json({ error: err, message: "Failed" });
+    }
+  }
+
+  private async updateMarcUsersList(
+    req: Request,
+    resp: TypedResponse<IDataResponse<IUpdateUserResponse>>
+  ) {
+    try {
+      if (
+        !req.body ||
+        !req.body.usersList ||
+        !Array.isArray(req.body.usersList)
+      ) {
+        return resp.status(400).json({
+          error:
+            "'usersList' field is missing from request or is of wrong type",
+          message: "Failed"
+        });
+      }
+      let invitedUsers = Array.from<IUpdateUserData>(req.body.usersList);
+      let result = await this.marcsService.updateMarcUsersList(
+        req.params.id,
+        req.user as IUser,
+        invitedUsers
+      );
+      return resp.json({ message: "Success", data: result });
     } catch (err) {
       return resp.status(500).json({ error: err, message: "Failed" });
     }

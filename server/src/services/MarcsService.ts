@@ -4,7 +4,11 @@ import {
   IChangeEventData,
   Logger,
   IUser,
-  Role
+  Role,
+  IAccessUser,
+  IUpdateUserData,
+  IUpdateUserResponse,
+  LogLevel
 } from "remarc-app-common";
 import MarcModel, { IMarcDocument } from "./../models/MarcModel";
 import { MongoError } from "mongodb";
@@ -20,7 +24,6 @@ export default class MarcsService {
   public async getMarcs(user: IUser): Promise<IMarc[]> {
     return MarcModel.find(
       {
-        // "usersList.userName": user.userName,
         "usersList.email": user.email,
         "usersList.role": { $gte: Role.EDITOR }
       },
@@ -42,7 +45,6 @@ export default class MarcsService {
     if (user) {
       _query = {
         ..._query,
-        // "usersList.userName": user.userName,
         "usersList.email": user.email,
         "usersList.role": { $gte: Role.EDITOR }
       };
@@ -93,7 +95,6 @@ export default class MarcsService {
     return await MarcModel.updateOne(
       {
         marcId: marcId,
-        // "usersList.userName": user.userName,
         "usersList.email": user.email,
         "usersList.role": { $gte: Role.OWNER }
       },
@@ -104,6 +105,106 @@ export default class MarcsService {
       }
       return m;
     });
+  }
+
+  public async deleteMarc(marcId: string): Promise<void> {
+    if (await this.getMarcById(marcId)) {
+      await MarcModel.deleteOne({ marcId: marcId });
+    } else {
+      throw "Marc with given Id not found!";
+    }
+  }
+
+  public async updateMarcUsersList(
+    marcId: string,
+    user: IUser,
+    invitedList: IUpdateUserData[]
+  ): Promise<IUpdateUserResponse> {
+    let marc: IMarc | null;
+
+    try {
+      marc = await this.getMarcById(marcId, user);
+    } catch (err) {
+      throw err;
+    }
+
+    if (!marc) {
+      throw "Marc with given Id not found!";
+    }
+
+    let existingUsers = marc.usersList.map<IAccessUser>(u => {
+      return {
+        email: u.email,
+        role: u.role
+      };
+    });
+
+    let results: IUpdateUserResponse = [];
+
+    invitedList.forEach(user => {
+      if (!user.email) {
+        throw `'email' field is missing for user ${user.email}`;
+      }
+      if (!marc) {
+        throw "Marc with given Id not found!";
+      }
+      let msg: string;
+      let i = existingUsers.findIndex(u => u.email == user.email);
+
+      if (i < 0) {
+        if (!user.removeUser) {
+          if (!user.role) {
+            throw `'role' field is missing for user ${user.email}`;
+          }
+          existingUsers.push({
+            email: user.email,
+            role: user.role
+          });
+          msg = "User added to Marc";
+        } else {
+          msg = "User doesn't exist in Marc";
+        }
+      } else {
+        if (user.removeUser) {
+          existingUsers.splice(i, 1);
+          msg = "User removed from Marc";
+        } else {
+          if (!user.role) {
+            throw `'role' field is missing for user ${user.email}`;
+          }
+          existingUsers[i].role = user.role;
+          msg = "User role updated in Marc";
+        }
+      }
+
+      results.push({
+        email: user.email,
+        message: msg
+      });
+    });
+
+    this.logger.log(
+      MarcsService.name,
+      "updated usersList",
+      LogLevel.VERBOSE,
+      existingUsers
+    );
+
+    if (
+      (await MarcModel.updateOne(
+        {
+          marcId: marcId,
+          "usersList.email": user.email,
+          "usersList.role": { $gte: Role.OWNER }
+        },
+        {
+          usersList: existingUsers
+        }
+      )).nModified == 0
+    ) {
+      throw "No matched Marc found";
+    }
+    return results;
   }
 
   public async createMarc(title: string, user: IUser): Promise<IMarc | null> {

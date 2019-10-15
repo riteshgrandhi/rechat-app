@@ -53,7 +53,6 @@ export default class AuthService {
     try {
       return await axios
         .post<ISignUpResponse>(`${Config.serverUrl}/auth/signup`, {
-          // userName: user.userName,
           email: user.email,
           password: password,
           firstName: user.firstName,

@@ -11,11 +11,13 @@ import MarcsService from "./services/MarcsService";
 import { Config } from "./config/serverConfig";
 import { Logger, LogLevel } from "remarc-app-common";
 import AuthController from "./controllers/AuthController";
+import UsersService from "./services/UsersService";
 
 export default class CommServer {
   private app: Application;
   private port: number;
   private marcsService: MarcsService;
+  private usersService: UsersService;
   private logger: Logger;
 
   constructor(port: number) {
@@ -24,6 +26,7 @@ export default class CommServer {
     this.app = express();
     this.port = port;
     this.marcsService = new MarcsService(this.logger);
+    this.usersService = new UsersService(this.logger);
     this.initMiddleware();
     this.initControllers();
   }
@@ -78,7 +81,14 @@ export default class CommServer {
         path: "/socket.io"
         // transports: ["websocket"]
       });
-      const chatHandler = new ChangeHandler(io, this.marcsService, this.logger);
+
+      const chatHandler = new ChangeHandler(
+        io,
+        this.marcsService,
+        this.usersService,
+        this.logger
+      );
+      
       chatHandler.init();
     });
   }

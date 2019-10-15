@@ -6,7 +6,7 @@
     "install:client": "cd client && npm install",
     "install:server": "cd server && npm install",
     "install-all": "npm install && npm run install:client && npm run install:server",
-    "start": "concurrently \"cd server && npm run debug:server\"  \"cd client && npm run debug:client\" \"lt -p 3000 -s remarc -l localhost\""
+    "start": "concurrently \"cd server && npm run server\"  \"cd client && npm run client\" \"lt -p 3000 -s remarc -l localhost\""
   },
   "author": "",
   "license": "ISC",

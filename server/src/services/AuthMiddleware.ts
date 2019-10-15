@@ -30,7 +30,6 @@ export function configureAuthMiddleware(passport: PassportStatic) {
           }
 
           let _user: IUser = {
-            // userName: user.userName,
             firstName: user.firstName,
             lastName: user.lastName,
             email: user.email

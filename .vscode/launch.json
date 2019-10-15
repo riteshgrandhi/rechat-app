@@ -18,9 +18,7 @@
       "webRoot": "${workspaceFolder}/client",
       "sourceMaps": true,
       // "outFiles": ["${workspaceFolder}/client/node_modules/**/*.js"],
-      "runtimeArgs": [
-        "--preserve-symlinks"
-      ],
+      "runtimeArgs": ["--preserve-symlinks"],
       "sourceMapPathOverrides": {
         "webpack:///./*": "${webRoot}/*",
         "webpack:///src/*": "${webRoot}/*",
@@ -44,6 +42,7 @@
       "name": "ATTACH_TO_SERVER",
       "cwd": "${workspaceFolder}/server",
       // "processId": "${command:PickProcess}",
+      "trace": true,
       "protocol": "inspector",
       "restart": true,
       "port": 5858,
