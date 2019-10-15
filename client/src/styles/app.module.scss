@@ -127,6 +127,22 @@ body {
   display: flex;
   flex-direction: column;
   background-color: #272727;
+  .userDetails {
+    padding: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    .displayName {
+      font-size: 1.1em;
+      font-weight: 500;
+      color: #41b883;
+      display: flex;
+      align-items: center;
+      span {
+        padding-left: 10px;
+      }
+    }
+  }
   .marcList {
     // padding: 3% 5%;
     height: 70%;
