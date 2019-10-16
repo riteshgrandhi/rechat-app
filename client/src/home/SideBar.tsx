@@ -1,4 +1,12 @@
-import React, { Fragment, ChangeEvent } from "react";
+import React, {
+  Fragment,
+  ChangeEvent,
+  useState,
+  useEffect,
+  FunctionComponent,
+  useContext,
+  useRef
+} from "react";
 import styles from "../styles/app.module.scss";
 import { IMarc } from "@common";
 import {
@@ -12,9 +20,9 @@ import {
 } from "react-icons/fa";
 import { FiX, FiCheck } from "react-icons/fi";
 import { navigate } from "@reach/router";
-import onClickOutside from "react-onclickoutside";
 import { Key } from "ts-keycode-enum";
 import ServiceContext from "../services/ServiceContext";
+import useOnClickOutside from "../hooks/onClickOutside";
 
 interface ISideBarProps {
   currentMarcId?: string;
@@ -79,8 +87,7 @@ export class SideBar extends React.Component<ISideBarProps, ISideBarState> {
             className={`${styles.sideBarButton} ${styles.logoutButton}`}
             onClick={() => {
               this.context.authService.logout();
-            }}
-          >
+            }}>
             LOGOUT
           </button>
         </div>
@@ -90,8 +97,7 @@ export class SideBar extends React.Component<ISideBarProps, ISideBarState> {
             this.setState({ currentMarc: undefined }, () => {
               navigate("/");
             });
-          }}
-        >
+          }}>
           <div className={styles.title}>
             <FaHome /> <span>Home</span>{" "}
           </div>
@@ -100,10 +106,10 @@ export class SideBar extends React.Component<ISideBarProps, ISideBarState> {
           <Fragment>
             <hr />
             <div className={styles.marcInfo}>
-              <EditMarcTitleOutClick
+              <AddEditMarcTitle
                 refreshCallback={this.props.refreshCallback}
                 marc={this.state.currentMarc}
-              ></EditMarcTitleOutClick>
+              />
             </div>
           </Fragment>
         )}
@@ -127,364 +133,194 @@ interface ICollapseMenuProps {
   refreshCallback: () => void;
   onSelectCallback: (selectedMarcId?: string) => void;
 }
-interface ICollapseMenuState {
-  isOpen: boolean;
-  marcs: IMarc[];
-  selectedId: string;
-}
 
-class CollapseMenu extends React.Component<
-  ICollapseMenuProps,
-  ICollapseMenuState
-> {
-  constructor(props: ICollapseMenuProps) {
-    super(props);
-    this.state = {
-      isOpen: true,
-      marcs: this.props.marcs,
-      selectedId: this.props.selectedId
-    };
-    this.toggleMenu = this.toggleMenu.bind(this);
-  }
+const CollapseMenu: React.FunctionComponent<ICollapseMenuProps> = function(
+  props
+) {
+  const [isOpen, setIsOpen] = useState(true);
+  const [selectedId, setSelectedId] = useState(props.selectedId);
+  const [marcs, setMarcs] = useState(props.marcs);
 
-  componentDidUpdate(prevProps: ICollapseMenuProps) {
-    if (prevProps.marcs != this.props.marcs) {
-      this.setState({
-        marcs: this.props.marcs
-      });
-    }
-    if (prevProps.selectedId != this.props.selectedId) {
-      this.setState({
-        selectedId: this.props.selectedId
-      });
-    }
-  }
+  useEffect(() => {
+    setMarcs(props.marcs);
+  }, [props.marcs]);
 
-  private toggleMenu(event: React.MouseEvent) {
-    let _flag = this.state.isOpen;
+  useEffect(() => {
+    setSelectedId(props.selectedId);
+  }, [props.selectedId]);
+
+  useEffect(() => {
+    props.onSelectCallback(selectedId);
+    props.refreshCallback();
+  }, [selectedId]);
+
+  let toggleMenu = () => {
+    let _flag = isOpen;
     _flag = !_flag;
-    this.setState({
-      isOpen: _flag
-    });
-  }
+    setIsOpen(_flag);
+  };
 
-  render() {
-    return (
-      <div className={styles.marcList}>
-        <div
-          onClick={this.toggleMenu}
-          className={`${styles.menuItem} ${styles.main}`}
-        >
-          <a className={styles.title}>Your Marcs </a>
-          {this.state.isOpen ? (
-            <FaChevronDown className={styles.chevronCollapse} />
-          ) : (
-            <FaChevronRight className={styles.chevronCollapse} />
-          )}
-        </div>
-        <div className={this.state.isOpen ? styles.open : styles.closed}>
-          <AddMarcTitleOutClick
-            refreshCallback={() => {
-              this.setState(
-                {
-                  selectedId: ""
-                },
-                this.props.refreshCallback
-              );
-            }}
-          />
-          {this.props.marcs.map(m => (
-            <div
-              key={m.marcId}
-              className={`${styles.menuItem} ${
-                m.marcId == this.state.selectedId ? styles.selected : ""
-              }`}
-              onClick={() => {
-                this.setState(
-                  {
-                    selectedId: m.marcId
-                  },
-                  () => {
-                    this.props.onSelectCallback(this.state.selectedId);
-                    navigate(`/edit/${m.marcId}`);
-                  }
-                );
-              }}
-            >
-              <FaFile />
-              <span>{m.title}</span>
-            </div>
-          ))}
-        </div>
-        <hr />
+  return (
+    <div className={styles.marcList}>
+      <div onClick={toggleMenu} className={`${styles.menuItem} ${styles.main}`}>
+        <a className={styles.title}>Your Marcs </a>
+        {isOpen ? (
+          <FaChevronDown className={styles.chevronCollapse} />
+        ) : (
+          <FaChevronRight className={styles.chevronCollapse} />
+        )}
       </div>
-    );
-  }
-}
+      <div className={isOpen ? styles.open : styles.closed}>
+        <AddEditMarcTitle
+          refreshCallback={() => {
+            setSelectedId("");
+          }}
+        />
+        {marcs.map(m => (
+          <div
+            key={m.marcId}
+            className={`${styles.menuItem} ${
+              m.marcId == selectedId ? styles.selected : ""
+            }`}
+            onClick={() => {
+              setSelectedId(m.marcId);
+              navigate(`/edit/${m.marcId}`);
+            }}>
+            <FaFile />
+            <span>{m.title}</span>
+          </div>
+        ))}
+      </div>
+      <hr />
+    </div>
+  );
+};
 
 interface IAddEditMarcProps {
   refreshCallback: () => void;
   marc?: IMarc;
 }
 
-interface IAddEditMarcState {
-  isEditing: boolean;
-  isLoading: boolean;
-  title: string;
-}
+const AddEditMarcTitle: FunctionComponent<IAddEditMarcProps> = function(props) {
+  const [isEditing, setIsEditing] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [title, setTitle] = useState(props.marc ? props.marc.title : "");
+  const [currentTitle, setCurrentTitle] = useState(title);
 
-class AddMarcTitle extends React.Component<
-  IAddEditMarcProps,
-  IAddEditMarcState
-> {
-  static contextType = ServiceContext;
-  public context!: React.ContextType<typeof ServiceContext>;
+  useEffect(() => {
+    if (props.marc) {
+      setTitle(props.marc.title);
+    }
+  }, [props.marc]);
 
-  constructor(props: IAddEditMarcProps) {
-    super(props);
-    this.state = {
-      isEditing: false,
-      isLoading: false,
-      title: ""
-    };
-    this.onSubmit = this.onSubmit.bind(this);
-    this.onDismiss = this.onDismiss.bind(this);
-    this.handleClickOutside = this.handleClickOutside.bind(this);
-  }
+  let context = useContext(ServiceContext);
 
-  public handleClickOutside() {
-    this.onDismiss();
-  }
+  const onDismiss = () => {
+    if (props.marc) {
+      setTitle(props.marc.title);
+    }
+    setIsEditing(false);
+    setIsLoading(false);
+  };
 
-  private onSubmit() {
-    let _title: string = this.state.title;
+  const ref = useRef<HTMLDivElement>(null);
+
+  useOnClickOutside(ref, () => {
+    onDismiss();
+  });
+
+  const onSubmit = () => {
+    let _title: string = title;
+
     if (!_title) {
       return;
     }
-    this.setState({
-      isLoading: true,
-      title: ""
-    });
-    this.context.apiService.axiosAuth
-      .post("/api/marcs", { title: _title })
-      .then(() => {
-        this.setState(
-          {
-            isEditing: false,
-            isLoading: false
-          },
-          () => {
-            this.props.refreshCallback();
-          }
-        );
-      })
-      .catch(err => {
-        this.setState(
-          {
-            isEditing: false,
-            isLoading: false
-          },
-          () => {
-            navigate("/", {
-              // navigate("/error", {
-              state: {
-                error: err,
-                message: `Failed to Create Marc: ${this.state.title}`
-              }
-            });
-          }
-        );
-      });
-  }
 
-  private onDismiss() {
-    this.setState({
-      isEditing: false,
-      isLoading: false
-    });
-  }
-
-  render() {
-    return (
-      <Fragment>
-        {!(this.state.isEditing || this.state.isLoading) && (
-          <div
-            className={styles.menuItem}
-            onClick={() => {
-              this.setState({ isEditing: true });
-            }}
-          >
-            <FaPlus />
-            <span>New Marc</span>
-          </div>
-        )}
-        {this.state.isEditing && (
-          <div
-            className={`${styles.menuItem} ${styles.newMarc}`}
-            onKeyPress={e => {
-              if (e.which == Key.Enter) {
-                this.onSubmit();
-              }
-            }}
-          >
-            <input
-              type="text"
-              className={styles.embeddedTextBox}
-              onChange={(event: ChangeEvent<HTMLInputElement>) => {
-                this.setState({
-                  title: event.target.value
-                });
-              }}
-              autoFocus
-            ></input>
-            <div>
-              <FiCheck
-                className={styles.sideBarButton}
-                onClick={this.onSubmit}
-              ></FiCheck>
-              <FiX
-                className={`${styles.sideBarButton} ${styles.cancel}`}
-                onClick={this.onDismiss}
-              />
-            </div>
-          </div>
-        )}
-      </Fragment>
-    );
-  }
-}
-
-class EditMarcTitle extends React.Component<
-  IAddEditMarcProps,
-  IAddEditMarcState
-> {
-  private _currentTitle: string;
-  static contextType = ServiceContext;
-  public context!: React.ContextType<typeof ServiceContext>;
-
-  constructor(props: IAddEditMarcProps) {
-    super(props);
-    this.state = {
-      isEditing: false,
-      isLoading: false,
-      title: props.marc ? props.marc.title : ""
-    };
-    this._currentTitle = this.state.title;
-    this.onSubmit = this.onSubmit.bind(this);
-    this.onDismiss = this.onDismiss.bind(this);
-    this.handleClickOutside = this.handleClickOutside.bind(this);
-  }
-
-  componentDidUpdate(prevProps: IAddEditMarcProps) {
-    if (this.props.marc && prevProps.marc != this.props.marc) {
-      this.setState({ title: this.props.marc.title });
-    }
-  }
-
-  public handleClickOutside() {
-    this.onDismiss();
-  }
-
-  private onSubmit() {
-    let _title: string = this.state.title;
-    if (!_title || !this.props.marc || this._currentTitle == _title) {
-      this.setState({ title: this._currentTitle, isEditing: false });
+    if (props.marc && currentTitle == _title) {
+      setTitle(currentTitle);
       return;
     }
 
-    this.setState({
-      isLoading: true
-    });
+    setIsLoading(true);
 
-    this.context.apiService.axiosAuth
-      .put(`/api/marcs/${this.props.marc.marcId}`, { title: _title })
+    (props.marc
+      ? context.apiService.axiosAuth.put(`/api/marcs/${props.marc.marcId}`, {
+          title: _title
+        })
+      : context.apiService.axiosAuth.post("/api/marcs", { title: _title })
+    )
       .then(() => {
-        this.setState(
-          {
-            isEditing: false,
-            isLoading: false
-          },
-          () => {
-            this._currentTitle = this.state.title;
-            this.props.refreshCallback();
-          }
-        );
+        setIsEditing(false);
+        setIsLoading(false);
+        if (props.marc) {
+          setCurrentTitle(title);
+        }
+        props.refreshCallback();
       })
       .catch(err => {
-        this.setState(
-          {
-            isEditing: false,
-            isLoading: false
-          },
-          () => {
-            navigate("/", {
-              // navigate("/error", {
-              state: {
-                error: err,
-                message: `Failed to Edit Marc: ${this.state.title}`
-              }
-            });
+        setIsEditing(false);
+        setIsLoading(false);
+        navigate("/", {
+          // navigate("/error", {
+          state: {
+            error: err,
+            message: `Failed to ${
+              props.marc ? "Edit" : "Create"
+            } Marc: ${title}`
           }
-        );
+        });
       });
-  }
+  };
 
-  private onDismiss() {
-    this.setState({
-      isEditing: false,
-      isLoading: false
-    });
-  }
-
-  render() {
-    return (
-      <Fragment>
-        {!(this.state.isEditing || this.state.isLoading) && (
+  return (
+    <Fragment>
+      {!(isEditing || isLoading) &&
+        (props.marc ? (
           <div className={`${styles.menuItem} ${styles.main}`}>
-            <div className={styles.title}>{this.state.title}</div>
+            <div className={styles.title}>{title}</div>
             <FaPen
               onClick={() => {
-                this.setState({ isEditing: true });
-              }}
-            ></FaPen>
+                setIsEditing(true);
+              }}></FaPen>
           </div>
-        )}
-        {this.state.isEditing && (
+        ) : (
           <div
-            className={`${styles.menuItem} ${styles.newMarc}`}
-            onKeyPress={e => {
-              if (e.which == Key.Enter) {
-                this.onSubmit();
-              }
-            }}
-          >
-            <input
-              type="text"
-              value={this.state.title}
-              className={styles.embeddedTextBox}
-              onChange={(event: ChangeEvent<HTMLInputElement>) => {
-                this.setState({
-                  title: event.target.value
-                });
-              }}
-              autoFocus
-            ></input>
-            <div>
-              <FiCheck
-                className={styles.sideBarButton}
-                onClick={this.onSubmit}
-              ></FiCheck>
-              <FiX
-                className={`${styles.sideBarButton} ${styles.cancel}`}
-                onClick={this.onDismiss}
-              />
-            </div>
+            className={styles.menuItem}
+            onClick={() => {
+              setIsEditing(true);
+            }}>
+            <FaPlus />
+            <span>New Marc</span>
           </div>
-        )}
-      </Fragment>
-    );
-  }
-}
-
-let AddMarcTitleOutClick = onClickOutside(AddMarcTitle);
-let EditMarcTitleOutClick = onClickOutside(EditMarcTitle);
+        ))}
+      {isEditing && (
+        <div
+          ref={ref}
+          className={`${styles.menuItem} ${styles.newMarc}`}
+          onKeyPress={e => {
+            if (e.which == Key.Enter) {
+              onSubmit();
+            }
+          }}>
+          <input
+            type="text"
+            value={title}
+            className={styles.embeddedTextBox}
+            onChange={(event: ChangeEvent<HTMLInputElement>) => {
+              setTitle(event.target.value);
+            }}
+            autoFocus></input>
+          <div>
+            <FiCheck
+              className={styles.sideBarButton}
+              onClick={onSubmit}></FiCheck>
+            <FiX
+              className={`${styles.sideBarButton} ${styles.cancel}`}
+              onClick={onDismiss}
+            />
+          </div>
+        </div>
+      )}
+    </Fragment>
+  );
+};
