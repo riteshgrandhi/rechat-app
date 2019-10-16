@@ -161,10 +161,13 @@ body {
   .title {
     float: left;
     text-align: left;
-    font-weight: 600;
-    font-size: 1.2em;
     display: flex;
     align-items: center;
+    &.bold,
+    .bold {
+      font-weight: 600;
+      font-size: 1.2em;
+    }
   }
 
   .chevronCollapse {
@@ -233,7 +236,7 @@ body {
     &.cancel:hover {
       background-color: lighten($color: #333333, $amount: 10%);
     }
-    &.logoutButton {
+    &.rightButton {
       border-radius: 3px;
       font-size: 0.85em;
     }
@@ -279,4 +282,27 @@ body {
       opacity: 1;
     }
   }
+}
+
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 10; /* Sit on top */
+  width: 100%; /* Full width */
+  height: 100%; /* Full height */
+  overflow: auto; /* Enable scroll if needed */
+  background-color: rgba(0, 0, 0, 0.4); /* Black w/ opacity */
+}
+
+.modalContent {
+  background-color: #fefefe;
+  padding: 20px;
+  border: 1px solid #888;
+  width: 40vw; /* Could be more or less, depending on screen size */
+  height: 40vh;
+  min-width: 300px;
 }

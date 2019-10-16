@@ -17,7 +17,6 @@
       "url": "http://localhost:3000",
       "webRoot": "${workspaceFolder}/client",
       "sourceMaps": true,
-      // "outFiles": ["${workspaceFolder}/client/node_modules/**/*.js"],
       "runtimeArgs": ["--preserve-symlinks"],
       "sourceMapPathOverrides": {
         "webpack:///./*": "${webRoot}/*",
@@ -27,21 +26,11 @@
         "meteor://💻app/*": "${webRoot}/*"
       }
     },
-    // {
-    //   "type": "node",
-    //   "request": "launch",
-    //   "name": "SERVER",
-    //   "cwd": "${workspaceFolder}/server",
-    //   "runtimeExecutable": "npm",
-    //   "runtimeArgs": ["run-script", "start"],
-    //   "port": 3001
-    // },
     {
       "type": "node",
       "request": "attach",
       "name": "ATTACH_TO_SERVER",
       "cwd": "${workspaceFolder}/server",
-      // "processId": "${command:PickProcess}",
       "trace": true,
       "protocol": "inspector",
       "restart": true,

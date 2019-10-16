@@ -16,13 +16,14 @@ import {
   FaPlus,
   FaPen,
   FaHome,
-  FaUser
+  FaUserCircle
 } from "react-icons/fa";
 import { FiX, FiCheck } from "react-icons/fi";
 import { navigate } from "@reach/router";
 import { Key } from "ts-keycode-enum";
 import ServiceContext from "../services/ServiceContext";
-import useOnClickOutside from "../hooks/onClickOutside";
+import useOnClickOutside from "../utils/onClickOutsideHook";
+import { ShowModal } from "../utils/ShowModal";
 
 interface ISideBarProps {
   currentMarcId?: string;
@@ -78,13 +79,13 @@ export class SideBar extends React.Component<ISideBarProps, ISideBarState> {
       <div className={styles.infoPanel}>
         <div className={styles.userDetails}>
           <span className={styles.displayName}>
-            <FaUser />
+            <FaUserCircle />
             <span>
               {currentUser.firstName} {currentUser.lastName}
             </span>
           </span>
           <button
-            className={`${styles.sideBarButton} ${styles.logoutButton}`}
+            className={`${styles.sideBarButton} ${styles.rightButton}`}
             onClick={() => {
               this.context.authService.logout();
             }}>
@@ -98,7 +99,7 @@ export class SideBar extends React.Component<ISideBarProps, ISideBarState> {
               navigate("/");
             });
           }}>
-          <div className={styles.title}>
+          <div className={`${styles.title} ${styles.bold}`}>
             <FaHome /> <span>Home</span>{" "}
           </div>
         </div>
@@ -163,7 +164,7 @@ const CollapseMenu: React.FunctionComponent<ICollapseMenuProps> = function(
   return (
     <div className={styles.marcList}>
       <div onClick={toggleMenu} className={`${styles.menuItem} ${styles.main}`}>
-        <a className={styles.title}>Your Marcs </a>
+        <a className={`${styles.title} ${styles.bold}`}>Your Marcs </a>
         {isOpen ? (
           <FaChevronDown className={styles.chevronCollapse} />
         ) : (
@@ -206,6 +207,7 @@ const AddEditMarcTitle: FunctionComponent<IAddEditMarcProps> = function(props) {
   const [isLoading, setIsLoading] = useState(false);
   const [title, setTitle] = useState(props.marc ? props.marc.title : "");
   const [currentTitle, setCurrentTitle] = useState(title);
+  const [showManageModal, setShowManageModal] = useState(false);
 
   useEffect(() => {
     if (props.marc) {
@@ -277,11 +279,27 @@ const AddEditMarcTitle: FunctionComponent<IAddEditMarcProps> = function(props) {
       {!(isEditing || isLoading) &&
         (props.marc ? (
           <div className={`${styles.menuItem} ${styles.main}`}>
-            <div className={styles.title}>{title}</div>
-            <FaPen
-              onClick={() => {
-                setIsEditing(true);
-              }}></FaPen>
+            <div className={styles.title}>
+              <FaPen
+                onClick={() => {
+                  setIsEditing(true);
+                }}></FaPen>
+              <span className={styles.bold}>{title}</span>
+            </div>
+            <ShowModal
+              modal={<div>Hello</div>}
+              showModal={showManageModal}
+              onDismiss={() => {
+                setShowManageModal(false);
+              }}>
+              <button
+                className={`${styles.sideBarButton} ${styles.rightButton}`}
+                onClick={() => {
+                  setShowManageModal(true);
+                }}>
+                MANAGE
+              </button>
+            </ShowModal>
           </div>
         ) : (
           <div
