@@ -18,12 +18,14 @@ import {
   FaHome,
   FaUserCircle
 } from "react-icons/fa";
-import { FiX, FiCheck } from "react-icons/fi";
+import { FiX, FiCheck, FiSettings } from "react-icons/fi";
 import { navigate } from "@reach/router";
 import { Key } from "ts-keycode-enum";
 import ServiceContext from "../services/ServiceContext";
 import useOnClickOutside from "../utils/onClickOutsideHook";
 import { ShowModal } from "../utils/ShowModal";
+import { ManageMarc } from "./ManageMarc";
+import { Loader } from "../utils/Loader";
 
 interface ISideBarProps {
   currentMarcId?: string;
@@ -231,7 +233,7 @@ const AddEditMarcTitle: FunctionComponent<IAddEditMarcProps> = function(props) {
     onDismiss();
   });
 
-  const onSubmit = () => {
+  const onSubmit = async () => {
     let _title: string = title;
 
     if (!_title) {
@@ -244,6 +246,7 @@ const AddEditMarcTitle: FunctionComponent<IAddEditMarcProps> = function(props) {
     }
 
     setIsLoading(true);
+    setIsEditing(false);
 
     (props.marc
       ? context.apiService.axiosAuth.put(`/api/marcs/${props.marc.marcId}`, {
@@ -252,7 +255,7 @@ const AddEditMarcTitle: FunctionComponent<IAddEditMarcProps> = function(props) {
       : context.apiService.axiosAuth.post("/api/marcs", { title: _title })
     )
       .then(() => {
-        setIsEditing(false);
+        //setIsEditing(false);
         setIsLoading(false);
         if (props.marc) {
           setCurrentTitle(title);
@@ -276,6 +279,7 @@ const AddEditMarcTitle: FunctionComponent<IAddEditMarcProps> = function(props) {
 
   return (
     <Fragment>
+      {isLoading && <Loader />}
       {!(isEditing || isLoading) &&
         (props.marc ? (
           <div className={`${styles.menuItem} ${styles.main}`}>
@@ -287,19 +291,20 @@ const AddEditMarcTitle: FunctionComponent<IAddEditMarcProps> = function(props) {
               <span className={styles.bold}>{title}</span>
             </div>
             <ShowModal
-              modal={<div>Hello</div>}
+              title={props.marc.title}
               showModal={showManageModal}
+              contentDismissClass={styles.inReverse}
               onDismiss={() => {
                 setShowManageModal(false);
               }}>
-              <button
-                className={`${styles.sideBarButton} ${styles.rightButton}`}
-                onClick={() => {
-                  setShowManageModal(true);
-                }}>
-                MANAGE
-              </button>
+              <ManageMarc marc={props.marc} />
             </ShowModal>
+            <FiSettings
+              className={`${styles.sideBarButton} ${styles.rightButton}`}
+              onClick={() => {
+                setShowManageModal(true);
+              }}
+            />
           </div>
         ) : (
           <div

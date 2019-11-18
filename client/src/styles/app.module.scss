@@ -175,78 +175,80 @@ body {
     float: right;
   }
 
-  .menuItem {
-    padding: 10px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    padding-left: 20px;
-    background-color: #272727;
-
-    &:hover {
-      background-color: lighten($color: #272727, $amount: 10%);
-      color: #cccccc;
-    }
-    &.main,
-    &.newMarc {
-      justify-content: space-between;
-      padding-left: 10px;
-    }
-    &.newMarc {
-      background-color: #444444;
-      color: #cccccc;
-      cursor: auto;
-    }
-    &.selected {
-      color: #41b883;
-    }
-    span {
-      padding-left: 10px;
-    }
-    transition: all 0.5s ease;
-  }
-
-  .embeddedTextBox {
-    background: transparent;
-    border: none;
-    color: #cccccc;
-    font-size: 1em;
-    &:focus {
-      outline: none;
-    }
-  }
-
-  .sideBarButton {
-    border: none;
-    font-size: 1em;
-    font-weight: 600;
-    padding: 8px;
-    border-radius: 3px 0px 0px 3px;
-    color: #dddddd;
-    background-color: #3dac7a;
-    cursor: pointer;
-    &:hover {
-      background-color: lighten($color: #3dac7a, $amount: 10%);
-    }
-    &.cancel {
-      background-color: #333333;
-      color: #e04a0e;
-      border-radius: 0px 3px 3px 0px;
-    }
-    &.cancel:hover {
-      background-color: lighten($color: #333333, $amount: 10%);
-    }
-    &.rightButton {
-      border-radius: 3px;
-      font-size: 0.85em;
-    }
-    transition: all 0.5s ease;
-  }
-
   hr {
     border: 0.5px solid #565656;
     border-radius: 1px;
     margin: 0px;
+  }
+}
+
+.menuItem {
+  padding: 10px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  padding-left: 20px;
+  background-color: #272727;
+
+  &:hover {
+    background-color: lighten($color: #272727, $amount: 10%);
+    color: #cccccc;
+  }
+  &.main,
+  &.newMarc {
+    justify-content: space-between;
+    padding-left: 10px;
+  }
+  &.newMarc {
+    background-color: #444444;
+    color: #cccccc;
+    cursor: auto;
+  }
+  &.selected {
+    color: #41b883;
+  }
+  span {
+    padding-left: 10px;
+  }
+  transition: all 0.5s ease;
+}
+
+.sideBarButton {
+  border: none;
+  font-size: 1em;
+  font-weight: 600;
+  padding: 8px;
+  border-radius: 3px 0px 0px 3px;
+  color: #dddddd;
+  background-color: #3dac7a;
+  //display: flex;
+  //flex-direction: row;
+  cursor: pointer;
+  &:hover {
+    background-color: lighten($color: #3dac7a, $amount: 10%);
+  }
+  &.cancel {
+    background-color: #333333;
+    color: #e04a0e;
+    border-radius: 0px 3px 3px 0px;
+  }
+  &.cancel:hover {
+    background-color: lighten($color: #333333, $amount: 10%);
+  }
+  &.rightButton {
+    border-radius: 3px;
+    font-size: 0.85em;
+  }
+  transition: all 0.5s ease;
+}
+
+.embeddedTextBox {
+  background: transparent;
+  border: none;
+  color: #cccccc;
+  font-size: 1em;
+  &:focus {
+    outline: none;
   }
 }
 
@@ -284,12 +286,109 @@ body {
   }
 }
 
+.manageMarc {
+  label {
+    text-align: left;
+    font-size: 1.1em;
+    padding: 10px;
+    padding-left: 0;
+    color: #aaaaaa;
+  }
+  .searchContainer {
+    @extend .modalMarginNegate;
+    display: flex;
+    .searchBox {
+      flex: auto;
+      font-size: 1.1em;
+      background-color: lighten($color: #272727, $amount: 20%);
+      padding: 15px;
+      padding-left: 20px;
+      border: none;
+      color: #dddddd;
+      &:focus {
+        outline: none;
+      }
+      &:focus,
+      &:hover {
+        background-color: lighten($color: #272727, $amount: 30%);
+      }
+      &::placeholder {
+        color: lighten($color: #272727, $amount: 50%);
+      }
+      transition: all 0.5s ease;
+    }
+  }
+  .userContainer {
+    padding-top: 20px;
+    color: #dddddd;
+    .menuItem {
+      @extend .modalMarginNegate;
+    }
+    select {
+      -webkit-appearance: none;
+      -moz-appearance: none;
+      -ms-appearance: none;
+      appearance: none;
+      outline: 0;
+      box-shadow: none;
+      border: 0 !important;
+      background: lighten($color: #272727, $amount: 20%);
+      background-image: none;
+      &:focus,
+      &:hover {
+        background-color: lighten($color: #272727, $amount: 30%);
+      }
+      transition: all 0.5s ease;
+    }
+    .userDiv {
+      padding: 3px 5px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      .dropdownRoot {
+        width: 30%;
+        min-width: 80px;
+      }
+      .dropdownControl {
+        padding: 10px;
+        background-color: lighten($color: #272727, $amount: 20%);
+        color: #dddddd;
+        border: none;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        cursor: pointer;
+        &:hover {
+          background-color: lighten($color: #272727, $amount: 30%);
+          box-shadow: 0 0 10px rgba(0, 0, 0, 0.7);
+        }
+      }
+      .dropdownMenu {
+        background-color: lighten($color: #272727, $amount: 20%);
+        color: #dddddd;
+        border: none;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.7);
+        div[class~="Dropdown-option"] {
+          color: #dddddd;
+          &:hover {
+            background-color: lighten($color: #272727, $amount: 30%);
+          }
+          transition: all 0.5s ease;
+        }
+        div[class~="is-selected"] {
+          background-color: lighten($color: #272727, $amount: 30%);
+        }
+      }
+    }
+  }
+}
+
 .modal {
   position: fixed;
   top: 0;
   left: 0;
   display: flex;
-  justify-content: center;
+  justify-content: left;
   align-items: center;
   z-index: 10; /* Sit on top */
   width: 100%; /* Full width */
@@ -298,11 +397,33 @@ body {
   background-color: rgba(0, 0, 0, 0.4); /* Black w/ opacity */
 }
 
+.modalMarginNegate {
+  margin: 0px -20px;
+}
+
+.modalPadding {
+  padding: 0px 20px;
+}
+
 .modalContent {
-  background-color: #fefefe;
-  padding: 20px;
-  border: 1px solid #888;
-  width: 40vw; /* Could be more or less, depending on screen size */
-  height: 40vh;
+  @extend .modalPadding;
+  background-color: #272727;
+  width: 30vw;
+  height: 100%;
   min-width: 300px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.7);
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 30px 0px;
+    font-size: 1.2em;
+    font-weight: 600;
+    color: #cccccc;
+    text-transform: uppercase;
+    .closeButton {
+      font-size: larger;
+      cursor: pointer;
+    }
+  }
 }

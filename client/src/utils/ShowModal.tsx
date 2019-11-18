@@ -1,32 +1,46 @@
 import React, {
   FunctionComponent,
   useState,
-  ReactNode,
   Fragment,
   useEffect,
-  useRef
+  CSSProperties
 } from "react";
+import ReactDOM from "react-dom";
 import styles from "./../styles/app.module.scss";
-import useOnClickOutside from "./onClickOutsideHook";
+import { FiX } from "react-icons/fi";
 
 interface IModalProps {
+  title: string;
   showModal: boolean;
-  modal: ReactNode;
+  contentClass?: string;
+  contentDismissClass?: string;
+  contentStyle?: CSSProperties;
+  closeDelay?: number;
   onSuccess?: () => void;
   onDismiss?: () => void;
 }
 
 export const ShowModal: FunctionComponent<IModalProps> = function(props) {
   const [isOpen, setIsOpen] = useState(props.showModal);
+  const [dismissClass, setDismissClass] = useState("");
 
-  const modalRef = useRef(null);
-
-  useOnClickOutside(modalRef, () => {
+  const dismiss = async () => {
+    let delay = new Promise<void>(resolve => {
+      if (props.closeDelay && props.contentDismissClass) {
+        setDismissClass(props.contentDismissClass);
+        setTimeout(() => {
+          resolve();
+        }, props.closeDelay * 1000);
+      } else {
+        resolve();
+      }
+    });
+    await delay;
     setIsOpen(false);
     if (props.onDismiss) {
       props.onDismiss();
     }
-  });
+  };
 
   useEffect(() => {
     setIsOpen(props.showModal);
@@ -34,14 +48,22 @@ export const ShowModal: FunctionComponent<IModalProps> = function(props) {
 
   return (
     <Fragment>
-      {isOpen && (
-        <div className={styles.modal}>
-          <div className={styles.modalContent} ref={modalRef}>
-            {props.modal}
-          </div>
-        </div>
-      )}
-      {props.children}
+      {isOpen &&
+        ReactDOM.createPortal(
+          <div className={styles.modal}>
+            <div
+              className={`${styles.modalContent} ${props.contentClass} ${dismissClass}`}
+              // ref={modalRef}
+              style={props.contentStyle}>
+              <div className={styles.header}>
+                <span>{props.title}</span>
+                <FiX className={styles.closeButton} onClick={dismiss} />
+              </div>
+              {props.children}
+            </div>
+          </div>,
+          document.body
+        )}
     </Fragment>
   );
 };
